@@ -1,0 +1,212 @@
+<div class="container">
+  <h1>Gestión de Catálogo</h1>
+
+  <div class="toolbar">
+    <div>
+      <button class="btn btn-primary" (click)="openAddModal()">Agregar Producto</button>
+      <button class="btn btn-secondary" (click)="exportToPDF()">Exportar a PDF</button>
+    </div>
+    <input type="text" class="search-input" [(ngModel)]="searchTerm" (input)="onSearch()"
+      placeholder="Buscar productos...">
+  </div>
+
+  <div class="table-responsive">
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Referencia</th>
+          <th>Diámetros</th>
+          <th>Malla</th>
+          <th>Categoría</th>
+          <th>Stock</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="paginatedProducts.length === 0">
+          <td colspan="6" class="no-results">No se encontraron productos</td>
+        </tr>
+        <tr *ngFor="let product of paginatedProducts">
+          <td>{{ product.referencia }}</td>
+          <td>
+            <span *ngIf="product.diametroExterno">Ext: {{ product.diametroExterno }}</span>
+            <span *ngIf="product.diametroInterno"><br>Int: {{ product.diametroInterno }}</span>
+            <span *ngIf="!product.diametroExterno && !product.diametroInterno">N/A</span>
+          </td>
+          <td>{{ product.malla || 'N/A' }}</td>
+          <td>{{ product.category || 'N/A' }}</td>
+          <td>{{ product.stock }}</td>
+          <td>
+            <button class="btn btn-primary btn-sm" (click)="openEditModal(product)">Editar</button>
+            <button class="btn btn-danger btn-sm" (click)="openDeleteModal(product)">Eliminar</button>
+            <button class="btn btn-warning btn-sm" (click)="viewDetails(product)">Detalles</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-container" *ngIf="totalPages > 1">
+    <ul class="pagination">
+      <li><a href="#" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&laquo;</a></li>
+      <li *ngFor="let page of [].constructor(totalPages); let i = index">
+        <a href="#" [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+      </li>
+      <li><a href="#" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">&raquo;</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Modal de Producto -->
+<div class="modal" [class.show]="isModalOpen">
+  <div class="modal-content">
+    <span class="close" (click)="closeModal()">&times;</span>
+    <h2>{{ modalTitle }}</h2>
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      <input type="hidden" formControlName="uid">
+
+      <div class="form-group">
+        <label for="referencia">Referencia*</label>
+        <input type="text" id="referencia" formControlName="referencia" class="form-control" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="diametroExterno">Diámetro Externo</label>
+          <input type="text" id="diametroExterno" formControlName="diametroExterno" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="diametroInterno">Diámetro Interno</label>
+          <input type="number" id="diametroInterno" formControlName="diametroInterno" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="alturaPliegue">Altura Pliegue</label>
+          <input type="number" id="alturaPliegue" formControlName="alturaPliegue" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="cantidadPliegues">Cantidad Pliegues</label>
+          <input type="number" id="cantidadPliegues" formControlName="cantidadPliegues" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="malla">Malla</label>
+        <input type="text" id="malla" formControlName="malla" class="form-control">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="longitudMallaExterna">Long. Malla Externa</label>
+          <input type="text" id="longitudMallaExterna" formControlName="longitudMallaExterna" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="longitudMallaInterna">Long. Malla Interna</label>
+          <input type="text" id="longitudMallaInterna" formControlName="longitudMallaInterna" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="polibretano">Polibretano</label>
+        <input type="text" id="polibretano" formControlName="polibretano" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="anillo">Anillo</label>
+        <input type="text" id="anillo" formControlName="anillo" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="tapa">Tapa</label>
+        <input type="text" id="tapa" formControlName="tapa" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="aplicaciones">Aplicaciones (separadas por comas)</label>
+        <input type="text" id="aplicaciones" formControlName="aplicaciones" class="form-control">
+        <div class="chip-container">
+          <span class="chip" *ngFor="let app of getArrayFromForm('aplicaciones')">{{ app }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="equivalencias">Equivalencias (separadas por comas)</label>
+        <input type="text" id="equivalencias" formControlName="equivalencias" class="form-control">
+        <div class="chip-container">
+          <span class="chip" *ngFor="let eq of getArrayFromForm('equivalencias')">{{ eq }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="papeles">Papeles (separados por comas)</label>
+        <input type="text" id="papeles" formControlName="papeles" class="form-control">
+        <div class="chip-container">
+          <span class="chip" *ngFor="let papel of getArrayFromForm('papeles')">{{ papel }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="category">Categoría</label>
+        <input type="text" id="category" formControlName="category" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="stock">Stock</label>
+        <input type="number" id="stock" formControlName="stock" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="imagesUrl">URLs de Imágenes (separadas por comas)</label>
+        <input type="text" id="imagesUrl" formControlName="imagesUrl" class="form-control">
+        <div class="chip-container">
+          <span class="chip" *ngFor="let img of getArrayFromForm('imagesUrl')">{{ img }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <button type="button" class="btn btn-danger" (click)="closeModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal" [class.show]="isDeleteModalOpen" *ngIf="selectedProduct">
+  <div class="modal-content confirm-modal">
+    <h2>Confirmar Eliminación</h2>
+    <p>¿Estás seguro de que deseas eliminar el siguiente producto?</p>
+
+    <div class="product-details">
+      <p><strong>Referencia:</strong> {{ selectedProduct.referencia }}</p>
+      <p><strong>Diámetro Externo:</strong> {{ selectedProduct.diametroExterno || 'N/A' }}</p>
+      <p><strong>Diámetro Interno:</strong> {{ selectedProduct.diametroInterno || 'N/A' }}</p>
+      <p><strong>Altura Pliegue:</strong> {{ selectedProduct.alturaPliegue || 'N/A' }}</p>
+      <p><strong>Corte Papel:</strong> {{ selectedProduct.cortePapel || 'N/A' }}</p>
+      <p><strong>Cantidad Pliegues:</strong> {{ selectedProduct.cantidadPliegues || 'N/A' }}</p>
+      <p><strong>Malla:</strong> {{ selectedProduct.malla || 'N/A' }}</p>
+      <p><strong>Longitud Malla Externa:</strong> {{ selectedProduct.longitudMallaExterna || 'N/A' }}</p>
+      <p><strong>Longitud Malla Interna:</strong> {{ selectedProduct.longitudMallaInterna || 'N/A' }}</p>
+      <p><strong>Polibretano:</strong> {{ selectedProduct.polibretano || 'N/A' }}</p>
+      <p><strong>Anillo:</strong> {{ selectedProduct.anillo || 'N/A' }}</p>
+      <p><strong>Tapa:</strong> {{ selectedProduct.tapa || 'N/A' }}</p>
+      <p><strong>Aplicaciones:</strong> {{ selectedProduct.aplicaciones.join(', ') || 'N/A' }}</p>
+      <p><strong>Equivalencias:</strong> {{ selectedProduct.equivalencias.join(', ') || 'N/A' }}</p>
+      <p><strong>Papeles:</strong> {{ selectedProduct.papeles.join(', ') || 'N/A' }}</p>
+      <p><strong>Categoría:</strong> {{ selectedProduct.category || 'N/A' }}</p>
+      <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>
+      <p><strong>Imágenes:</strong></p>
+      <div class="image-thumbnails">
+        <img *ngFor="let img of selectedProduct.imagesUrl" [src]="img" alt="Imagen del producto" width="100">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" (click)="onDelete()">Confirmar</button>
+      <button class="btn btn-primary" (click)="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
