@@ -1,0 +1,47 @@
+<div class="container">
+
+    <h2>Ajustar contenido</h2>
+
+    <div class="upload-wrapper">
+        <!-- Columna izquierda: imágenes guardadas -->
+        <div class="saved-images">
+            <h3>Imágenes ya almacenadas</h3>
+            <div class="image-grid">
+                <div class="image-item" *ngFor="let img of savedImages">
+                    <img [src]="'http://localhost:8080' + img.imagen" alt="{{ img.nombre }}" />
+                    <p>{{ img.nombre }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: subida -->
+        <div class="image-upload">
+            <h3>Imagen de promoción</h3>
+
+            <label class="upload-btn">
+                Agregar imagen
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" hidden />
+            </label>
+
+            <div *ngIf="previewUrl" class="preview-container">
+                <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                <p>{{ form.get('nombre')?.value }}</p>
+            </div>
+
+            <!--
+                <div class="type-selector">
+                    <label>
+                        <input type="radio" name="tipo" value="escritorio" (change)="setSelectedType('escritorio')" />
+                        Escritorio
+                    </label>
+                    <label>
+                        <input type="radio" name="tipo" value="movil" (change)="setSelectedType('movil')" />
+                        Móvil
+                    </label>
+                </div>
+                -->
+
+            <button (click)="uploadImage()" class="submit-btn">Guardar</button>
+        </div>
+    </div>
+</div>

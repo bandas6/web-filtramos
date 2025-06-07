@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { firstValueFrom } from 'rxjs';
 import { Catalogo } from '../../../services/catalogo/catalogo';
 
+import { NgSelectModule } from '@ng-select/ng-select';
 import Swal from 'sweetalert2';
 
 interface Product {
@@ -36,7 +37,8 @@ interface Product {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    NgSelectModule
   ],
   styleUrls: ['./catalogo-admin.scss']
 })
@@ -47,6 +49,7 @@ export class CatalogoAdmin implements OnInit {
 
   products: Product[] = [];
   filteredProducts: Product[] = [];
+  availableImageUrls: string[] = [];
 
   currentPage = 1;
   productsPerPage = 10;
@@ -54,6 +57,7 @@ export class CatalogoAdmin implements OnInit {
   productForm: FormGroup;
 
   selectedProduct: Product | null = null;
+  selectedImageUrl: string | null = null;
 
   isModalOpen = false;
   modeEdit = false;
@@ -90,13 +94,19 @@ export class CatalogoAdmin implements OnInit {
 
     this.getCatalogo()
     //this.loadProducts();
+    this.productForm.get('imagesUrl')?.valueChanges.subscribe((value: string[]) => {
+      const last = value?.length ? value[value.length - 1] : null;
+      this.selectedImageUrl = last ? `http://localhost:8080${last}` : null;
+      console.log('Selected image URL:', this.selectedImageUrl);
+    });
+
   }
 
+
   async getCatalogo() {
-    const data = await firstValueFrom(this.catalogoSvc.getCatalogo())
+    const data = await firstValueFrom(this.catalogoSvc.getCatalogo());
     const { ok, products } = data;
     if (ok) {
-      console.log('Catalogo data:', products);
       this.products = products.map((product: any) => ({
         ...product,
         aplicaciones: product.aplicaciones || [],
@@ -105,12 +115,28 @@ export class CatalogoAdmin implements OnInit {
         papeles: product.papeles || [],
         createdAt: new Date(product.createdAt)
       }));
-      console.log('Products after mapping:', this.products);
+
       this.filteredProducts = [...this.products];
+
+      // Generar lista única de URLs de imágenes
+      this.getFiles();
     } else {
       console.error('Error al cargar el catálogo');
     }
+  }
 
+  async getFiles() {
+    try {
+      const data = await firstValueFrom(this.catalogoSvc.getFiles());
+      if (data.ok) {
+        console.log('Archivos disponibles:', data.files);
+        this.availableImageUrls = data.files;
+      } else {
+        console.error('Error al cargar las imágenes disponibles');
+      }
+    } catch (error) {
+      console.error('Error al obtener archivos:', error);
+    }
   }
 
   onSearch(): void {
@@ -200,7 +226,7 @@ export class CatalogoAdmin implements OnInit {
       aplicaciones: toArray(formValue.aplicaciones),
       equivalencias: toArray(formValue.equivalencias),
       papeles: toArray(formValue.papeles),
-      imagesUrl: toArray(formValue.imagesUrl),
+      imagesUrl: formValue.imagesUrl || [],
       category: formValue.category,
       stock: Number(formValue.stock),
       createdAt: this.selectedProduct?.createdAt || new Date()

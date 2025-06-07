@@ -159,12 +159,20 @@
       </div>
 
       <div class="form-group">
-        <label for="imagesUrl">URLs de Imágenes (separadas por comas)</label>
-        <input type="text" id="imagesUrl" formControlName="imagesUrl" class="form-control">
-        <div class="chip-container">
-          <span class="chip" *ngFor="let img of getArrayFromForm('imagesUrl')">{{ img }}</span>
+        <label for="imagesUrl">URLs de Imágenes</label>
+        <ng-select [items]="availableImageUrls" bindLabel="nombre" bindValue="imagen" [multiple]="true"
+          formControlName="imagesUrl" placeholder="Selecciona una o más URLs de imagen" [addTag]="true"
+          class="form-control">
+        </ng-select>
+
+        <div *ngIf="selectedImageUrl" class="preview-container">
+          <p class="preview-label">Previsualización:</p>
+          <img [src]="selectedImageUrl" alt="Preview" class="preview-img" />
         </div>
       </div>
+
+
+
 
       <div class="form-group">
         <button type="submit" class="btn btn-success">Guardar</button>
