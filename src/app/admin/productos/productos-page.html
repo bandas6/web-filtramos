@@ -62,7 +62,7 @@
           <td>
             <div class="producto">
               @if (p.imagesUrl[0]) {
-                <img class="producto__foto" [src]="publicUrl + p.imagesUrl[0]" alt="" loading="lazy" />
+                <img class="producto__foto" [src]="urlImagen(p.imagesUrl[0], 120)" alt="" loading="lazy" />
               } @else {
                 <div class="producto__foto" aria-hidden="true"></div>
               }

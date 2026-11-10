@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { urlImagen } from '../../shared/formato';
 import { Auth } from '../../services/auth/auth';
 import { Avisos } from '../../shared/ui/avisos';
 import { BadgeEstado } from '../../shared/ui/badge-estado';
@@ -27,7 +27,7 @@ export class ProductosPage implements OnInit {
   readonly tipos = LISTA_TIPOS;
   readonly nombreTipo = TIPOS;
   readonly pesos = pesos;
-  readonly publicUrl = environment.publicUrl;
+  readonly urlImagen = urlImagen;
 
   q = signal('');
   tipo = signal('');

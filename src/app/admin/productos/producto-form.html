@@ -153,7 +153,7 @@
         <ol class="fotos">
           @for (u of fotos(); track u; let i = $index, ultima = $last) {
             <li class="foto">
-              <img [src]="publicUrl + u" [alt]="'Foto ' + (i + 1)" />
+              <img [src]="urlImagen(u, 300)" [alt]="'Foto ' + (i + 1)" />
               @if (!soloLectura()) {
                 <div class="foto__acciones">
                   <button type="button" class="btn-icono" (click)="moverFoto(i, -1)" [disabled]="i === 0" [attr.aria-label]="'Subir foto ' + (i + 1)"><f-icono nombre="arriba" /></button>
@@ -176,7 +176,7 @@
             <ul class="biblioteca">
               @for (img of fotosDisponibles(); track img.uid) {
                 <li><button type="button" class="biblioteca__item" (click)="agregarFoto(img.imagen)">
-                  <img [src]="publicUrl + img.imagen" alt="" /><span>{{ img.nombre }}</span>
+                  <img [src]="urlImagen(img.imagen, 200)" alt="" /><span>{{ img.nombre }}</span>
                 </button></li>
               }
             </ul>

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { urlImagen } from '../../shared/formato';
 import { Avisos } from '../../shared/ui/avisos';
 import { Icono } from '../../shared/ui/icono';
 import { AdminApi, mensajeDeError } from '../admin-api';
@@ -17,7 +17,7 @@ const MAX_MB = 5;
 export class ImagenesPage implements OnInit {
   private api = inject(AdminApi);
   private avisos = inject(Avisos);
-  readonly publicUrl = environment.publicUrl;
+  readonly urlImagen = urlImagen;
 
   imagenes = signal<Imagen[]>([]);
   archivo = signal<File | null>(null);

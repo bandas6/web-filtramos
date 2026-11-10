@@ -73,7 +73,7 @@
             </div>
             <div class="item__cuerpo">
               <div class="medida">
-                @if (s.foto) { <a [href]="urlImagen(s.foto)" target="_blank" rel="noopener" class="medida__foto"><img [src]="urlImagen(s.foto)" [alt]="'Foto enviada por ' + s.nombre" /></a> }
+                @if (s.foto) { <a [href]="urlImagen(s.foto)" target="_blank" rel="noopener" class="medida__foto"><img [src]="urlImagen(s.foto, 300)" [alt]="'Foto enviada por ' + s.nombre" /></a> }
                 <p class="medida__texto">{{ s.medidas }}</p>
               </div>
               <div class="item__acciones">

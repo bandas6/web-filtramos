@@ -24,7 +24,7 @@
         <ul>
           @for (l of pedido.lineas(); track l.slug) {
             <li class="linea">
-              <div class="linea__foto">@if (urlImagen(l.imagen); as img) { <img [src]="img" alt="" width="64" height="64" /> }</div>
+              <div class="linea__foto">@if (urlImagen(l.imagen, 128); as img) { <img [src]="img" alt="" width="64" height="64" /> }</div>
               <div class="linea__datos">
                 <a [routerLink]="['/filtro', l.slug]" class="mono linea__ref">{{ l.referencia }}</a>
                 <span class="muted">{{ l.tipoNombre }} · {{ unitario(l) ? pesos(unitario(l)) + ' c/u' : 'a cotizar' }}</span>

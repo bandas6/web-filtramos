@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { startWith } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { urlImagen } from '../../shared/formato';
 import { BadgeEstado } from '../../shared/ui/badge-estado';
 import { Icono } from '../../shared/ui/icono';
 import { AdminApi, mensajeDeError } from '../admin-api';
@@ -34,7 +34,7 @@ export class ProductoForm implements OnInit {
   cerrar = output<void>();
 
   readonly tipos = LISTA_TIPOS;
-  readonly publicUrl = environment.publicUrl;
+  readonly urlImagen = urlImagen;
   readonly fichaNumerica = [
     { clave: 'diametroExterno', etiqueta: 'Diámetro externo (mm)' },
     { clave: 'diametroInterno', etiqueta: 'Diámetro interno (mm)' },

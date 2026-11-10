@@ -49,7 +49,8 @@ export class ProductoPage implements OnInit {
   agregado = signal<string | null>(null);
   mostrarRecordatorio = signal(false);
 
-  imagenes = computed(() => (this.p()?.imagenes || []).map((i) => urlImagen(i)!));
+  imagenes = computed(() => (this.p()?.imagenes || []).map((i) => urlImagen(i, 1240)!));
+  miniaturas = computed(() => (this.p()?.imagenes || []).map((i) => urlImagen(i, 280)!));
   equivale = computed(() => textoEquivalencias(this.p()?.equivalencias || []));
   descripcion = computed(() => {
     const p = this.p();

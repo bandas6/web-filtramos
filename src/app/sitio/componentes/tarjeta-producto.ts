@@ -80,7 +80,7 @@ export class TarjetaProductoComponent {
   p = input.required<TarjetaProducto>();
   private ajustes = inject(AjustesSitio);
 
-  imagen = computed(() => urlImagen(this.p().imagen));
+  imagen = computed(() => urlImagen(this.p().imagen, 480));
   equivale = computed(() => (this.p().tipo === 'kit' ? (this.p().kit || []).join(', ') : textoEquivalencias(this.p().equivalencias)));
   precio = computed(() => (this.p().precio ? pesos(this.p().precio) : 'Cotizar'));
   nota = computed(() => [this.ajustes.valores().notaPrecios, this.p().tieneVolumen ? 'Precio por volumen disponible' : ''].filter(Boolean).join(' · '));

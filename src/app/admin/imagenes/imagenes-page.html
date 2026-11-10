@@ -22,7 +22,7 @@
 <ul class="rejilla">
   @for (img of imagenes(); track img.uid) {
     <li class="tarjeta item">
-      <img [src]="publicUrl + img.imagen" [alt]="img.nombre" loading="lazy" />
+      <img [src]="urlImagen(img.imagen, 400)" [alt]="img.nombre" loading="lazy" />
       <div class="item__pie">
         <span class="item__nombre">{{ img.nombre }}</span>
         <button type="button" class="btn-icono btn-icono--peligro" (click)="eliminar(img)" [attr.aria-label]="'Eliminar ' + img.nombre">

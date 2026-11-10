@@ -30,7 +30,7 @@
               @for (img of imagenes(); track img; let i = $index) {
                 <li><button type="button" class="miniatura" [class.activa]="i === fotoActual()" (click)="fotoActual.set(i)"
                             [attr.aria-label]="'Ver foto ' + (i + 1)" [attr.aria-pressed]="i === fotoActual()">
-                  <img [src]="img" alt="" loading="lazy" width="140" height="140" />
+                  <img [src]="miniaturas()[i]" alt="" loading="lazy" width="140" height="140" />
                 </button></li>
               }
             </ul>
