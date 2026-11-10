@@ -19,6 +19,7 @@ h1 { font-size: 32px; }
 .item__cuerpo { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start; > div:first-child { flex: 1 1 320px; min-width: 0; } }
 .item__cliente { font-weight: 600; }
 .item__lineas { list-style: none; margin: 6px 0 0; padding: 0; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.item__lineas .muted { margin-left: 1ch; }
 .item__nota { margin: 8px 0 0; font-size: 14px; color: var(--f-text-2); font-style: italic; }
 .item__acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .medida { display: flex; gap: 12px; align-items: flex-start; }
