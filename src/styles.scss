@@ -1,1 +1,55 @@
-/* You can add global styles to this file, and also import other style files */
+/* Línea visual Filtramos (ver lienzo de diseño) */
+:root {
+  --f-ink: #141414;
+  --f-green: #1f6b27;        /* botones y enlaces (contraste AA sobre blanco) */
+  --f-green-dark: #14501b;
+  --f-green-light: #8fd394;  /* acentos sobre fondo oscuro */
+  --f-green-tint: #e4f1e5;
+  --f-ground: #f4f5f1;
+  --f-line: #dcdfd8;
+  --f-muted: #555b55;
+  --f-font-body: 'Inter', system-ui, sans-serif;
+  --f-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --f-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+body {
+  margin: 0;
+  font-family: var(--f-font-body);
+  color: var(--f-ink);
+  background: var(--f-ground);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label { font-size: 14px; font-weight: 600; }
+
+  input, select, textarea {
+    height: 48px;
+    padding: 0 12px;
+    border: 1px solid #c7cbc4;
+    border-radius: 8px;
+    font: 16px var(--f-font-body);
+    background: #fff;
+
+    &:focus { outline: 2px solid var(--f-green); outline-offset: 1px; border-color: var(--f-green); }
+  }
+}
+
+.field__error { color: #8a3a0c; font-size: 13px; }
+
+.btn-primary {
+  height: 52px;
+  border: none;
+  border-radius: 8px;
+  background: var(--f-ink);
+  color: #fff;
+  font: 600 17px var(--f-font-body);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: #2a2f2a; }
+  &:disabled { opacity: 0.6; cursor: wait; }
+}

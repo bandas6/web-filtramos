@@ -1,18 +1,22 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterLink, RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Auth } from '../../services/auth/auth';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink, RouterModule],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './header.html',
   styleUrl: './header.scss'
 })
 export class Header {
+  auth = inject(Auth);
 
   menuItems = [
-    { label: 'Gestión catálogo', link: '/pages/catalogo-admin' },
-    { label: 'Gestión Archivos', link: '/pages/upload' }
+    { label: 'Productos', link: '/pages/catalogo-admin' },
+    { label: 'Imágenes', link: '/pages/upload' }
   ];
 
+  salir() {
+    this.auth.logout();
+  }
 }

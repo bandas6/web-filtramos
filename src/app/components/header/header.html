@@ -1,21 +1,27 @@
 <header class="header">
   <div class="header__container">
-    <div class="header__logo">
-      <img src="assets/logo.png" alt="Logo" />
-    </div>
+    <a routerLink="/pages" class="header__logo" aria-label="Filtramos, inicio del panel">
+      <img src="logo.png" alt="Filtramos" />
+    </a>
 
-    <nav class="header__nav">
+    <nav class="header__nav" aria-label="Panel">
       <ul>
-        <li *ngFor="let item of menuItems">
-          <a
-            [routerLink]="item.link"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
-          >
-            {{ item.label }}
-          </a>
-        </li>
+        @for (item of menuItems; track item.link) {
+          <li>
+            <a [routerLink]="item.link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              {{ item.label }}
+            </a>
+          </li>
+        }
       </ul>
     </nav>
+
+    @if (auth.usuario(); as u) {
+      <div class="header__user">
+        <span class="header__avatar" aria-hidden="true">{{ u.nombre.charAt(0).toUpperCase() }}</span>
+        <span class="header__name">{{ u.nombre }} <small>{{ u.rol }}</small></span>
+        <button type="button" class="header__logout" (click)="salir()">Salir</button>
+      </div>
+    }
   </div>
 </header>

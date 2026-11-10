@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Catalogo } from '../../../services/catalogo/catalogo';
+import { environment } from '../../../../environments/environment';
 
 
 @Component({
@@ -21,6 +22,8 @@ export class Upload implements OnInit, AfterViewInit {
   selectedType: 'escritorio' | 'movil' | null = null;
 
   savedImages: any[] = [];
+  publicUrl = environment.publicUrl;
+  private cd = inject(ChangeDetectorRef);
 
   constructor(private fb: FormBuilder, private catalogo: Catalogo, private router: Router, private route: ActivatedRoute) {
     this.form = this.fb.group({
@@ -50,6 +53,7 @@ export class Upload implements OnInit, AfterViewInit {
         console.log('Imágenes cargadas:', response);
         // Asignar las imágenes guardadas al array
         this.savedImages = response?.files || [];
+        this.cd.markForCheck();
       },
       error: (err) => {
         console.error('Error al cargar imágenes:', err);
@@ -88,7 +92,7 @@ export class Upload implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('Error al subir la imagen:', error);
-        alert('Error al subir la imagen');
+        alert(error.error?.error || 'Error al subir la imagen');
       }
     });
   }

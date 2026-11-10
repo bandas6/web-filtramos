@@ -8,7 +8,7 @@
             <h3>Imágenes ya almacenadas</h3>
             <div class="image-grid">
                 <div class="image-item" *ngFor="let img of savedImages">
-                    <img [src]="'http://localhost:8080' + img.imagen" alt="{{ img.nombre }}" />
+                    <img [src]="publicUrl + img.imagen" alt="{{ img.nombre }}" />
                     <p>{{ img.nombre }}</p>
                 </div>
             </div>
