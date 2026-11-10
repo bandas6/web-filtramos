@@ -7,10 +7,12 @@ import { Imagen } from '../modelos';
 
 const MAX_MB = 5;
 
+import { AyudaSeccion, Vacio } from '../ayuda/componentes';
+import { VACIOS } from '../ayuda/textos';
 @Component({
   selector: 'app-imagenes-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icono],
+  imports: [AyudaSeccion, Vacio, Icono],
   templateUrl: './imagenes-page.html',
   styleUrl: './imagenes-page.scss'
 })
@@ -18,6 +20,7 @@ export class ImagenesPage implements OnInit {
   private api = inject(AdminApi);
   private avisos = inject(Avisos);
   readonly urlImagen = urlImagen;
+  readonly vacios = VACIOS;
 
   imagenes = signal<Imagen[]>([]);
   archivo = signal<File | null>(null);

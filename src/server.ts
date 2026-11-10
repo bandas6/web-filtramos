@@ -28,6 +28,7 @@ app.get('/sitemap.xml', async (req, res) => {
     const urls = [
       `<url><loc>${base}/</loc></url>`,
       `<url><loc>${base}/catalogo</loc></url>`,
+      `<url><loc>${base}/a-medida</loc></url>`,
       ...productos.map((p) => `<url><loc>${escaparXml(`${base}/filtro/${p.slug}`)}</loc>${p.actualizado ? `<lastmod>${p.actualizado.slice(0, 10)}</lastmod>` : ''}</url>`)
     ];
     res.type('application/xml').set('Cache-Control', 'public, max-age=3600')

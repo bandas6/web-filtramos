@@ -1,27 +1,24 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Icono } from '../../shared/ui/icono';
-import { pesos } from '../../shared/formato';
-import { TarjetaProductoComponent } from '../componentes/tarjeta-producto';
-import { FormMedida, FormRecordatorio } from '../componentes/formularios';
+import { enlaceWhatsapp } from '../../shared/formato';
+import { ItemProductoComponent } from '../componentes/tarjeta-producto';
 import { AjustesSitio } from '../estado-sitio';
 import { Seo } from '../seo';
-import { SitioApi, TarjetaProducto } from '../sitio-api';
+import { ConteoTipo, SitioApi, TarjetaProducto } from '../sitio-api';
 
 type Modo = 'referencia' | 'maquina' | 'medidas';
 
-const SECTORES = [
-  { n: '01', titulo: 'Transporte', texto: 'Camiones, buses y flotas' },
-  { n: '02', titulo: 'Agro', texto: 'Tractores y cosechadoras' },
-  { n: '03', titulo: 'Minería', texto: 'Equipo pesado en ambientes con polvo' },
-  { n: '04', titulo: 'Construcción', texto: 'Maquinaria amarilla' },
-  { n: '05', titulo: 'Industria', texto: 'Compresores y plantas' }
-];
+const SECTORES = ['Transporte', 'Agro', 'Minería', 'Construcción', 'Industria'];
+
+// Accesos por tipo: orden fijo del negocio (los kits al final)
+const ORDEN_TIPOS = ['aire-primario', 'aire-seguridad', 'prefiltro', 'cabina', 'compresor', 'kit'];
+const POR_SECCION = 3;
 
 @Component({
   selector: 'app-inicio-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icono, TarjetaProductoComponent, FormMedida, FormRecordatorio],
+  imports: [RouterLink, Icono, ItemProductoComponent],
   templateUrl: './inicio-page.html',
   styleUrl: './inicio-page.scss'
 })
@@ -32,7 +29,6 @@ export class InicioPage implements OnInit {
   ajustes = inject(AjustesSitio);
 
   readonly sectores = SECTORES;
-  readonly pesos = pesos;
   readonly modos: { valor: Modo; texto: string; corto: string }[] = [
     { valor: 'referencia', texto: 'Referencia o equivalencia', corto: 'Referencia' },
     { valor: 'maquina', texto: 'Por máquina', corto: 'Máquina' },
@@ -43,8 +39,12 @@ export class InicioPage implements OnInit {
   destacados = signal<TarjetaProducto[]>([]);
   criterio = signal<'ventas' | 'recientes'>('recientes');
   kits = signal<TarjetaProducto[]>([]);
+  tipos = signal<ConteoTipo[]>([]);
 
-  tituloDestacados = computed(() => (this.criterio() === 'ventas' ? 'Referencias más vendidas' : 'Referencias del catálogo'));
+  // Empresas: WhatsApp con mensaje de volumen si está configurado; si no, el pedido de cotización
+  enlaceVolumen = computed(() => enlaceWhatsapp(this.ajustes.whatsapp(), 'Hola, compro para una empresa o flota y quiero precio por volumen.'));
+
+  tituloDestacados = computed(() => (this.criterio() === 'ventas' ? 'Más vendidos' : 'Del catálogo'));
 
   constructor() {
     // JSON-LD de la organización con el WhatsApp de ventas cuando esté configurado
@@ -52,8 +52,12 @@ export class InicioPage implements OnInit {
   }
 
   ngOnInit() {
-    this.api.destacados().subscribe({ next: (r) => { this.destacados.set(r.productos); this.criterio.set(r.criterio); }, error: () => {} });
-    this.api.kits().subscribe({ next: (k) => this.kits.set(k.slice(0, 3)), error: () => {} });
+    this.api.destacados().subscribe({ next: (r) => { this.destacados.set(r.productos.slice(0, POR_SECCION)); this.criterio.set(r.criterio); }, error: () => {} });
+    this.api.kits().subscribe({ next: (k) => this.kits.set(k.slice(0, POR_SECCION)), error: () => {} });
+    this.api.tipos().subscribe({
+      next: (t) => this.tipos.set(t.filter((x) => x.total > 0).sort((a, b) => ORDEN_TIPOS.indexOf(a.valor) - ORDEN_TIPOS.indexOf(b.valor))),
+      error: () => {}
+    });
   }
 
   private ponerSeo(whatsapp: string | null) {
@@ -91,5 +95,4 @@ export class InicioPage implements OnInit {
     this.router.navigate(['/catalogo'], { queryParams: q });
   }
 
-  equivalenciasKit(k: TarjetaProducto) { return k.kit || []; }
 }

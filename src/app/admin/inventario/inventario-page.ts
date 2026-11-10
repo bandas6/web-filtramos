@@ -10,13 +10,16 @@ import { Icono } from '../../shared/ui/icono';
 import { AdminApi, mensajeDeError } from '../admin-api';
 import { descargar, FilaInventario, IndicadoresInventario, Movimiento, MOTIVOS_MANUALES, NOMBRE_MOTIVO, TIPOS } from '../modelos';
 import { ListaMovimientos } from './lista-movimientos';
+import { BuscadorReferencia, OpcionReferencia } from './buscador-referencia';
 
 type TipoManual = 'entrada' | 'salida' | 'ajuste';
 
+import { AyudaSeccion, InfoCampo, Vacio } from '../ayuda/componentes';
+import { VACIOS } from '../ayuda/textos';
 @Component({
   selector: 'app-inventario-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, TarjetaIndicador, BadgeDisponibilidad, ListaMovimientos, Icono],
+  imports: [BuscadorReferencia, AyudaSeccion, Vacio, InfoCampo, ReactiveFormsModule, RouterLink, DecimalPipe, TarjetaIndicador, BadgeDisponibilidad, ListaMovimientos, Icono],
   templateUrl: './inventario-page.html',
   styleUrl: './inventario-page.scss'
 })
@@ -27,6 +30,7 @@ export class InventarioPage implements OnInit {
   auth = inject(Auth);
 
   readonly nombreTipo = TIPOS;
+  readonly vacios = VACIOS;
   readonly nombreMotivo = NOMBRE_MOTIVO;
   readonly tiposMovimiento: { valor: TipoManual; nombre: string }[] = [
     { valor: 'entrada', nombre: 'Entrada' }, { valor: 'salida', nombre: 'Salida' }, { valor: 'ajuste', nombre: 'Ajuste' }
@@ -46,8 +50,9 @@ export class InventarioPage implements OnInit {
   tipoMov = signal<TipoManual>('entrada');
   motivos = computed(() => MOTIVOS_MANUALES[this.tipoMov()]);
   puedeRegistrar = computed(() => ['admin', 'bodega'].includes(this.auth.usuario()?.rol || ''));
-  // Referencias para el autocompletado (los kits no tienen stock propio)
-  referencias = computed(() => this.filas().filter((f) => !f.esKit).map((f) => f.referencia));
+  // Todas las referencias para el buscador del movimiento (los kits no tienen stock propio).
+  // Se cargan aparte para no depender de la búsqueda de la tabla.
+  opcionesReferencia = signal<OpcionReferencia[]>([]);
 
   form = this.fb.nonNullable.group({
     referencia: ['', Validators.required],
@@ -65,6 +70,15 @@ export class InventarioPage implements OnInit {
   ngOnInit() {
     this.cargar();
     this.cargarRecientes();
+    this.cargarOpciones();
+  }
+
+  cargarOpciones() {
+    this.api.inventario({}).subscribe({
+      next: (r) => this.opcionesReferencia.set(r.productos.filter((f) => !f.esKit)
+        .map((f) => ({ referencia: f.referencia, tipo: TIPOS[f.tipo || ''] || 'Sin tipo', disponible: f.disponible }))),
+      error: () => {}
+    });
   }
 
   cargar() {
@@ -116,7 +130,7 @@ export class InventarioPage implements OnInit {
   guardar() {
     const v = this.form.getRawValue();
     const cantidad = v.cantidad === null || (v.cantidad as unknown) === '' ? null : Number(v.cantidad);
-    if (!v.referencia.trim()) { this.errorForm.set('Escriba la referencia.'); return; }
+    if (!v.referencia.trim()) { this.errorForm.set('Elija la referencia de la lista de sugerencias.'); return; }
     if (cantidad === null || !Number.isInteger(cantidad) || cantidad < (this.tipoMov() === 'ajuste' ? 0 : 1)) {
       this.errorForm.set(this.tipoMov() === 'ajuste' ? 'Escriba el stock contado (entero, 0 o más).' : 'Escriba una cantidad entera mayor que 0.');
       return;
@@ -135,6 +149,7 @@ export class InventarioPage implements OnInit {
         this.avisos.ok(`${m.referencia}: ${signo}. Stock actual: ${m.stockResultante}.`);
         this.cargar();
         this.cargarRecientes();
+        this.cargarOpciones();
       },
       error: (e) => { this.guardando.set(false); this.errorForm.set(mensajeDeError(e, 'No se pudo registrar el movimiento.')); }
     });

@@ -207,3 +207,14 @@ export const SIGUIENTES_ESTADOS: Record<string, { estado: PedidoAdmin['estado'];
   despachado: [],
   cancelado: []
 };
+
+// GET /api/admin/inicio
+export interface InicioPanel {
+  pasos: { clave: string; hecho: boolean; noAplica: boolean }[];
+  avisos: {
+    stockBajo: { total: number; items: { uid: string; referencia: string; disponible: number; minimo: number }[] };
+    pedidosNuevos: number;
+    medidaNuevas: number;
+    borradores: { total: number; items: { uid: string; referencia: string; motivos: { clave: string; texto: string }[] }[] };
+  };
+}

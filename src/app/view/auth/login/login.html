@@ -29,8 +29,11 @@
         }
       </div>
 
-      @if (error()) {
-        <p class="alert" role="alert">{{ error() }}</p>
+      @if (error(); as e) {
+        <div class="alert" [class]="'alert alert--' + e.tipo" role="alert">
+          <strong>{{ e.titulo }}</strong>
+          <span>{{ e.detalle }}</span>
+        </div>
       }
 
       <button type="submit" class="btn-primary" [disabled]="cargando()">
@@ -39,5 +42,19 @@
 
       <p class="card__secure">Sesión protegida. Si olvidó su contraseña, pida al administrador que la restablezca.</p>
     </form>
+
+    @if (demo().length) {
+      <section class="demo" aria-labelledby="demo-t">
+        <h2 id="demo-t">Usuarios de demostración</h2>
+        <p>Solo en desarrollo (API en memoria). Toque uno para llenar el formulario.</p>
+        <ul>
+          @for (u of demo(); track u.email) {
+            <li><button type="button" class="demo__usuario" (click)="usarDemo(u)">
+              <b>{{ u.rol }}</b><span class="mono">{{ u.email }}</span><span class="mono">{{ u.password }}</span>
+            </button></li>
+          }
+        </ul>
+      </section>
+    }
   </section>
 </div>

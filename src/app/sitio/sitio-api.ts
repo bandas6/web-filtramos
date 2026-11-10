@@ -14,6 +14,7 @@ export interface TarjetaProducto {
   precio: number | null;
   tieneVolumen: boolean;
   equivalencias: Equivalencia[];
+  totalEquivalencias?: number;
   diametroExterno: number | null;
   alto: number | null;
   imagen: string | null;
@@ -48,7 +49,17 @@ export interface AjustesPublicos {
   politicaDatos?: string;
 }
 
-export interface Busqueda { q?: string; maquina?: string; diamExt?: string; alto?: string; tipo?: string; pagina?: number; }
+export interface Busqueda {
+  q?: string; maquina?: string; diamExt?: string; alto?: string; tipo?: string;
+  disponibilidad?: string; diamMin?: string; diamMax?: string; altoMin?: string; altoMax?: string;
+  orden?: 'referencia' | 'precio-asc' | 'precio-desc' | string;
+  pagina?: number;
+}
+
+// Parámetros del catálogo que viajan en la URL (en este orden)
+export const PARAMS_BUSQUEDA = ['q', 'maquina', 'diamExt', 'alto', 'tipo', 'disponibilidad', 'diamMin', 'diamMax', 'altoMin', 'altoMax', 'orden'] as const;
+
+export interface ConteoTipo { valor: string; nombre: string; total: number; }
 
 // Acceso a /api/public (sin sesión). En el servidor (SSR) las respuestas se transfieren al navegador.
 @Injectable({ providedIn: 'root' })
@@ -63,6 +74,9 @@ export class SitioApi {
     let params = new HttpParams();
     for (const [k, v] of Object.entries(b)) if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
     return this.http.get<any>(`${this.url}/productos`, { params });
+  }
+  tipos(): Observable<ConteoTipo[]> {
+    return this.http.get<any>(`${this.url}/tipos`).pipe(map((r) => r.tipos));
   }
   destacados(): Observable<{ criterio: 'ventas' | 'recientes'; productos: TarjetaProducto[] }> {
     return this.http.get<any>(`${this.url}/productos/destacados`);

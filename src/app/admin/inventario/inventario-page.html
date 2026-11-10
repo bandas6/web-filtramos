@@ -11,6 +11,8 @@
   </div>
 </header>
 
+<f-ayuda seccion="inventario" />
+
 <!-- Siigo: se conecta en la etapa G (pendiente de confirmar el plan con API) -->
 <section class="tarjeta siigo" aria-label="Sincronización con Siigo">
   <span class="siigo__punto" aria-hidden="true"></span>
@@ -44,9 +46,9 @@
       <thead>
         <tr>
           <th scope="col">Referencia</th>
-          <th scope="col">Disponible</th>
-          <th scope="col">Reservado</th>
-          <th scope="col">Mínimo</th>
+          <th scope="col">Disponible <f-info campo="disponible" etiqueta="disponible" /></th>
+          <th scope="col">Reservado <f-info campo="reservado" etiqueta="reservado" /></th>
+          <th scope="col">Mínimo <f-info campo="stockMinimo" etiqueta="el mínimo" /></th>
           <th scope="col">Nivel</th>
           <th scope="col">Se muestra en la web</th>
         </tr>
@@ -75,7 +77,15 @@
             <td data-etiqueta="Se muestra en la web"><f-disponibilidad [estado]="f.estado" [quedan]="f.quedan" /></td>
           </tr>
         } @empty {
-          <tr><td colspan="6" class="tabla__vacia">{{ cargando() ? 'Cargando…' : (q() || soloBajo() ? 'Ninguna referencia coincide.' : 'Todavía no hay productos.') }}</td></tr>
+          <tr><td colspan="6" class="tabla__vacia">
+            @if (cargando()) { Cargando… }
+            @else if (q() || soloBajo()) { <f-vacio [titulo]="vacios.inventarioFiltro.titulo" [texto]="vacios.inventarioFiltro.texto" /> }
+            @else {
+              <f-vacio [titulo]="vacios.inventario.titulo" [texto]="vacios.inventario.texto">
+                @if (auth.esAdmin()) { <a class="btn btn--verde" routerLink="/admin/importar">Importar Excel</a> <a class="btn" routerLink="/admin/productos">Ir a Productos</a> }
+              </f-vacio>
+            }
+          </td></tr>
         }
       </tbody>
     </table>
@@ -94,10 +104,7 @@
         </div>
         <div class="field">
           <label for="mv-ref">Referencia</label>
-          <input id="mv-ref" class="mono ref-input" formControlName="referencia" list="mv-refs" autocomplete="off" />
-          <datalist id="mv-refs">
-            @for (r of referencias(); track r) { <option [value]="r"></option> }
-          </datalist>
+          <f-buscador-referencia formControlName="referencia" [opciones]="opcionesReferencia()" inputId="mv-ref" />
         </div>
         <div class="dos">
           <div class="field">

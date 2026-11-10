@@ -17,7 +17,14 @@
   display: flex; flex-wrap: wrap; gap: 4px 28px; flex: 1 1 420px; font-size: 15px; font-weight: 500;
   a { color: var(--f-ink); text-decoration: none; padding: 12px 0; &:hover { color: var(--f-green); } }
 }
-.cabecera__acciones { display: flex; gap: 10px; align-items: center; }
+.cabecera__acciones { display: flex; gap: 10px; align-items: center; order: 3; }
+.cabecera__nav { order: 1; }
+.cabecera__buscar {
+  order: 2; flex: 0 1 280px; display: flex; align-items: center; height: 44px; border: 1px solid var(--f-line); border-radius: 8px; background: #fff;
+  &:focus-within { outline: 2px solid var(--f-green); outline-offset: 1px; }
+  input { flex: 1; min-width: 0; height: 100%; border: none; background: transparent; padding: 0 12px; font: 400 15px var(--f-font-body); color: var(--f-ink); outline: none; }
+  button { width: 44px; height: 100%; border: none; background: transparent; color: var(--f-ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+}
 .cabecera__carrito { position: relative; text-decoration: none; }
 .cabecera__cuenta {
   position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
@@ -48,7 +55,8 @@ main { outline: none; }
   .barra { display: none; }
   .cabecera__fila { padding-top: 10px; padding-bottom: 10px; gap: 10px; }
   .cabecera__logo img { height: 40px; }
-  .cabecera__acciones { margin-left: auto; }
+  .cabecera__acciones { margin-left: auto; order: 2; }
+  .cabecera__buscar { order: 4; flex: 1 1 100%; }
   .cabecera__wa { display: none; }
   .cabecera__menu {
     display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center;
@@ -64,5 +72,9 @@ main { outline: none; }
     align-items: center; justify-content: center; gap: 10px; background: var(--f-green); color: #fff; text-decoration: none;
     font-weight: 700; font-size: 17px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
   }
-  .pie { padding-bottom: 88px; }
+  .pie--flotante { padding-bottom: 88px; }
+  .pie__rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; padding-top: 28px; padding-bottom: 20px;
+    > div:first-child { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 12px; }
+    a, span { padding: 5px 0; } }
+  .pie__texto { margin: 0; }
 }

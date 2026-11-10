@@ -11,6 +11,7 @@ interface Opcion { texto: string; ruta: string; icono: NombreIcono; query?: Reco
 
 // Menú del diseño (Admin.png / Inventario.png). Las opciones de etapas futuras se agregan aquí.
 const OPCIONES: Opcion[] = [
+  { texto: 'Inicio', ruta: '/admin', icono: 'inicio' },
   { texto: 'Productos', ruta: '/admin/productos', icono: 'productos' },
   { texto: 'Inventario', ruta: '/admin/inventario', icono: 'inventario' },
   { texto: 'Importar Excel', ruta: '/admin/importar', icono: 'importar', roles: ['admin'] },
@@ -62,6 +63,7 @@ export class AdminLayout implements OnInit {
   // "Productos" y "Kits" comparten ruta: se distingue por ?tipo=kit
   activa(o: Opcion): boolean {
     const url = this.url();
+    if (o.ruta === '/admin') return url.split(/[?#]/)[0] === '/admin';
     if (!url.startsWith(o.ruta)) return false;
     const esKits = /[?&]tipo=kit(&|$)/.test(url);
     if (o.ruta === '/admin/productos') return o.query ? esKits : !esKits;

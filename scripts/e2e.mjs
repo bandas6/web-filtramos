@@ -64,7 +64,7 @@ async function entrar(page, rol, clave = CLAVES[rol], email = `${rol}@demo.local
   await page.getByLabel('Correo').fill(email);
   await page.getByLabel('Contraseña').fill(clave);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('**/admin/productos**');
+  await page.waitForURL((u) => new URL(u).pathname === '/admin');
 }
 
 async function filaStock(page, ref) {
@@ -87,6 +87,14 @@ await paso('Login: contraseña incorrecta muestra error y no entra', admin, asyn
   await admin.getByRole('button', { name: 'Entrar' }).click();
   await admin.getByRole('alert').waitFor();
   esperar(admin.url().includes('/admin/login'), 'salió de la pantalla de login');
+  const txt = await admin.getByRole('alert').innerText();
+  esperar(txt.includes('Correo o contraseña incorrectos'), `mensaje: ${txt}`);
+});
+
+await paso('Login: usuarios de demostración (solo API en memoria) llenan el formulario', admin, async () => {
+  await admin.getByRole('heading', { name: 'Usuarios de demostración' }).waitFor();
+  await admin.locator('.demo__usuario', { hasText: 'bodega@demo.local' }).click();
+  esperar(await admin.getByLabel('Correo').inputValue() === 'bodega@demo.local', 'no llenó el correo');
 });
 
 await paso('Ruta protegida sin sesión redirige al login', admin, async () => {
@@ -95,6 +103,84 @@ await paso('Ruta protegida sin sesión redirige al login', admin, async () => {
 });
 
 await paso('Login admin', admin, () => entrar(admin, 'admin'));
+
+await paso('Inicio del panel: "No aplica" cuenta en el avance y se guarda por usuario', admin, async () => {
+  const avance = () => admin.locator('.pasos__avance').innerText();
+  const limpiarNoAplica = () => admin.evaluate(async (api) => {
+    await fetch(`${api}/api/auth/preferencias`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('filtramos_token')}` },
+      body: JSON.stringify({ pasosNoAplica: [] })
+    });
+  }, API);
+  // Parte de cero aunque una corrida anterior haya dejado pasos marcados
+  await limpiarNoAplica();
+  await admin.reload();
+  await admin.getByRole('heading', { name: 'Avisos de hoy' }).waitFor();
+  if (!(await admin.locator('section.pasos').count())) return; // todos los pasos ya están hechos con los datos
+  const antes = await avance();
+  // Toma el primer paso pendiente (depende de los datos del momento)
+  const boton = admin.locator('.paso button[aria-label^="No aplica: "]').first();
+  await boton.waitFor();
+  const titulo = (await boton.getAttribute('aria-label')).replace('No aplica: ', '');
+  await boton.click();
+  await admin.waitForTimeout(500);
+  const [hechos, total] = antes.split(' de ').map(Number);
+  if (hechos + 1 === total) {
+    // Era el último pendiente: el bloque se oculta y sigue oculto al recargar
+    esperar(!(await admin.locator('section.pasos').count()), 'el bloque no se ocultó al completarse');
+    await admin.reload();
+    await admin.getByRole('heading', { name: 'Avisos de hoy' }).waitFor();
+    esperar(!(await admin.locator('section.pasos').count()), 'el bloque reapareció al recargar');
+    await limpiarNoAplica(); // se deja como estaba
+    return;
+  }
+  const despues = await avance();
+  esperar(parseInt(despues) === hechos + 1, `${antes} → ${despues}`);
+  await admin.reload();
+  await admin.locator('.pasos__avance').waitFor();
+  esperar(await avance() === despues, 'no se guardó al recargar');
+  await admin.getByRole('button', { name: `Deshacer: ${titulo}` }).click();
+  await admin.waitForTimeout(500);
+  esperar(await avance() === antes, 'no se deshizo');
+});
+
+await paso('Ayuda: el cuadro se cierra, sigue cerrado al recargar y se reabre', admin, async () => {
+  await admin.goto(`${BASE}/admin/productos`);
+  await admin.getByRole('button', { name: 'Cerrar la ayuda' }).click();
+  await admin.reload();
+  await admin.locator('.ayuda__abrir').waitFor();
+  esperar(!(await admin.locator('section.ayuda').count()), 'el cuadro sigue visible');
+  await admin.locator('.ayuda__abrir').click();
+  await admin.locator('section.ayuda').waitFor();
+});
+
+await paso('Productos: "Agregar precio" abre el borrador con el foco en el precio', admin, async () => {
+  await admin.getByRole('button', { name: 'Agregar precio a DEMO-AP-002' }).click();
+  await admin.getByRole('dialog').waitFor();
+  await admin.waitForTimeout(300);
+  const foco = await admin.evaluate(() => document.activeElement?.id);
+  esperar(foco === 'pf-precio', `foco en ${foco}`);
+  await admin.getByRole('button', { name: 'Cancelar' }).click();
+});
+
+await paso('Inventario: el buscador sugiere referencias y se elige con el teclado', admin, async () => {
+  await admin.goto(`${BASE}/admin/inventario`);
+  const combo = admin.getByRole('combobox', { name: 'Referencia', exact: true });
+  await combo.fill('demo-ap');
+  const lista = admin.getByRole('listbox', { name: 'Referencias' });
+  await lista.getByRole('option').first().waitFor();
+  const n = await lista.getByRole('option').count();
+  esperar(n === 2, `${n} sugerencias`);
+  await combo.press('ArrowDown');
+  await admin.waitForFunction(() => document.querySelector('[role=combobox]')?.getAttribute('aria-activedescendant')?.endsWith('-op-1'));
+  await combo.press('Enter');
+  await admin.waitForFunction(() => document.querySelector('[role=combobox]')?.getAttribute('aria-expanded') === 'false');
+  esperar(await combo.inputValue() === 'DEMO-AP-002', `quedó "${await combo.inputValue()}"`);
+  await combo.fill('NO-EXISTE');
+  await admin.locator('#mv-cant').click();
+  await admin.getByText('No existe esa referencia').waitFor();
+});
 
 await paso('Ajustes: guardar WhatsApp de ventas quita el aviso', admin, async () => {
   await admin.goto(`${BASE}/admin/ajustes`);
@@ -162,6 +248,47 @@ await paso('Sitio: buscar por equivalencia A-001 encuentra DEMO-AP-001', cliente
   await cliente.getByText('DEMO-AP-001').first().waitFor();
 });
 
+await paso('Sitio: el inicio no tiene buscador en el encabezado; el catálogo sí', cliente, async () => {
+  await cliente.goto(BASE);
+  esperar(!(await cliente.locator('#cab-q').count()), 'hay buscador de encabezado en el inicio');
+  await cliente.goto(`${BASE}/catalogo`);
+  await cliente.locator('#cab-q').fill('A-101');
+  await cliente.locator('#cab-q').press('Enter');
+  await cliente.waitForURL('**/catalogo?q=A-101');
+  await cliente.locator('.tarjeta-p__ref', { hasText: 'DEMO-AS-001' }).waitFor();
+});
+
+await paso('Catálogo: filtro de disponibilidad en la URL y coincide con los badges', cliente, async () => {
+  await cliente.goto(`${BASE}/catalogo`);
+  await cliente.getByLabel('Bajo pedido').check();
+  await cliente.waitForURL('**disponibilidad=bajo-pedido**');
+  await cliente.waitForLoadState('networkidle');
+  const badges = await cliente.locator('app-tarjeta-producto f-disponibilidad').allInnerTexts();
+  esperar(badges.length > 0 && badges.every((b) => b.includes('Bajo pedido')), `badges: ${badges.join(', ')}`);
+  const conteo = await cliente.locator('.conteo b').innerText();
+  esperar(Number(conteo) === badges.length, `conteo ${conteo} vs ${badges.length} tarjetas`);
+});
+
+await paso('Catálogo: orden por precio de mayor a menor', cliente, async () => {
+  await cliente.goto(`${BASE}/catalogo`);
+  await cliente.locator('#c-orden').selectOption('precio-desc');
+  await cliente.waitForURL('**orden=precio-desc**');
+  await cliente.waitForLoadState('networkidle');
+  const precios = (await cliente.locator('.tarjeta-p__valor').allInnerTexts()).map((t) => Number(t.replace(/\D/g, ''))).filter(Boolean);
+  esperar(precios.every((p, i) => i === 0 || precios[i - 1] >= p), `orden: ${precios.join(' > ')}`);
+});
+
+await paso('Catálogo: rango de diámetro externo', cliente, async () => {
+  await cliente.goto(`${BASE}/catalogo`);
+  await cliente.locator('#c-dmin').fill('250');
+  await cliente.locator('#c-dmax').fill('310');
+  await cliente.getByRole('button', { name: 'Aplicar' }).click();
+  await cliente.waitForURL('**diamMax=310**');
+  await cliente.waitForLoadState('networkidle');
+  const refs = await cliente.locator('.tarjeta-p__ref').allInnerTexts();
+  esperar(refs.length && refs.every((r) => ['DEMO-AP-001', 'DEMO-AP-002'].includes(r.trim()) || r.startsWith('DEMO-E2E')), `refs: ${refs.join(', ')}`);
+});
+
 await paso(`Sitio: producto nuevo ${REF} aparece publicado`, cliente, async () => {
   await cliente.goto(`${BASE}/filtro/${REF.toLowerCase()}`);
   await cliente.getByRole('heading', { name: REF }).waitFor();
@@ -208,7 +335,7 @@ await paso('Sitio: enviar pedido completo', cliente, async () => {
 });
 
 await paso('Sitio: solicitud de fabricación a medida', cliente, async () => {
-  await cliente.goto(`${BASE}/#medida`);
+  await cliente.goto(`${BASE}/a-medida`);
   const f = cliente.locator('app-form-medida');
   await f.locator('#fm-nombre').fill(TALLER);
   await f.locator('#fm-wa').fill('573005556677');
@@ -306,6 +433,40 @@ await paso('Móvil: agregar desde la barra inferior y ver el pedido sin desborde
   await movil.locator('.linea__ref', { hasText: 'DEMO-AS-001' }).waitFor();
   const ancho = await movil.evaluate(() => document.documentElement.scrollWidth);
   esperar(ancho <= 390, `desborda: ${ancho}px`);
+});
+
+await paso('Móvil: menú del sitio abre, Escape lo cierra y el foco vuelve al botón', movil, async () => {
+  await movil.goto(`${BASE}/catalogo`);
+  const boton = movil.getByRole('button', { name: 'Abrir menú' });
+  await boton.click();
+  await movil.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Fabricación a medida' }).waitFor();
+  await movil.keyboard.press('Escape');
+  await movil.getByRole('button', { name: 'Abrir menú' }).waitFor();
+  const foco = await movil.evaluate(() => document.activeElement?.getAttribute('aria-controls'));
+  esperar(foco === 'nav-principal', `foco en ${foco}`);
+  esperar(!(await movil.getByRole('navigation', { name: 'Principal' }).isVisible()), 'el menú sigue visible');
+});
+
+await paso('Móvil: filtros del catálogo en panel; "Ver N resultados" aplica y cierra', movil, async () => {
+  await movil.goto(`${BASE}/catalogo`);
+  await movil.getByRole('button', { name: /^Filtros/ }).click();
+  const panel = movil.getByRole('dialog', { name: 'Filtros' });
+  await panel.waitFor();
+  await panel.getByLabel('Disponible', { exact: true }).check();
+  await movil.waitForURL('**disponibilidad=disponible**');
+  await panel.getByRole('button', { name: /^Ver \d+ resultado/ }).click();
+  await panel.waitFor({ state: 'hidden' });
+  const cuenta = await movil.locator('.abrir-filtros .cuenta').innerText();
+  esperar(cuenta === '1', `cuenta de filtros ${cuenta}`);
+});
+
+await paso('Móvil: el inicio ronda los 2.500 px (guía) y no desborda', movil, async () => {
+  await movil.goto(BASE);
+  await movil.waitForLoadState('networkidle');
+  const [alto, ancho] = await movil.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]);
+  // Guía, no límite estricto: con WhatsApp configurado se suma el botón flotante y la franja de asesoría
+  console.log(`    alto del inicio en celular: ${alto}px`);
+  esperar(alto <= 2700 && ancho <= 390, `alto ${alto}px, ancho ${ancho}px`);
 });
 
 await paso('Móvil: menú del panel abre y navega', movil, async () => {

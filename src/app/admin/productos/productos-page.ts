@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { urlImagen } from '../../shared/formato';
 import { Auth } from '../../services/auth/auth';
 import { Avisos } from '../../shared/ui/avisos';
@@ -10,10 +10,12 @@ import { AdminApi, mensajeDeError } from '../admin-api';
 import { LISTA_TIPOS, PaginaProductos, pesos, Producto, Resumen, TIPOS } from '../modelos';
 import { ProductoForm } from './producto-form';
 
+import { AyudaSeccion, InfoCampo, Vacio } from '../ayuda/componentes';
+import { SIGUIENTE_PASO, VACIOS } from '../ayuda/textos';
 @Component({
   selector: 'app-productos-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icono, BadgeEstado, TarjetaIndicador, ProductoForm],
+  imports: [RouterLink, AyudaSeccion, Vacio, InfoCampo, Icono, BadgeEstado, TarjetaIndicador, ProductoForm],
   templateUrl: './productos-page.html',
   styleUrl: './productos-page.scss'
 })
@@ -28,6 +30,8 @@ export class ProductosPage implements OnInit {
   readonly nombreTipo = TIPOS;
   readonly pesos = pesos;
   readonly urlImagen = urlImagen;
+  readonly vacios = VACIOS;
+  readonly siguientePaso = SIGUIENTE_PASO;
 
   q = signal('');
   tipo = signal('');
@@ -42,6 +46,8 @@ export class ProductosPage implements OnInit {
 
   // Formulario lateral: undefined = cerrado, null = nuevo, Producto = editar/ver
   enEdicion = signal<Producto | null | undefined>(undefined);
+  // Campo que se enfoca al abrir (desde el "siguiente paso" de un borrador)
+  campoInicial = signal<string | null>(null);
 
   esKits = computed(() => this.tipo() === 'kit');
   rango = computed(() => {
@@ -66,6 +72,9 @@ export class ProductosPage implements OnInit {
       this.estado.set(p.get('estado') || '');
       this.pagina.set(Number(p.get('pagina')) || 1);
       this.cargar();
+      // ?editar=<id>&campo=<id del campo>: abre ese producto (enlaces del inicio)
+      const editar = p.get('editar');
+      if (editar && this.auth.esAdmin()) this.abrirPorId(editar, p.get('campo'));
     });
     this.cargarResumen();
   }
@@ -102,8 +111,18 @@ export class ProductosPage implements OnInit {
     return p.equivalencias.length ? p.equivalencias.map((e) => `${e.marca} ${e.referencia}`).join(', ') : '—';
   }
 
-  nuevo() { this.enEdicion.set(null); }
-  editar(p: Producto) { this.enEdicion.set(p); }
+  nuevo() { this.campoInicial.set(null); this.enEdicion.set(null); }
+  editar(p: Producto, campo: string | null = null) { this.campoInicial.set(campo); this.enEdicion.set(p); }
+
+  private abrirPorId(id: string, campo: string | null) {
+    this.api.producto(id).subscribe({
+      next: (prod) => { this.editar(prod, campo); this.navegar({ editar: null, campo: null }); },
+      error: () => this.avisos.error('No se encontró ese producto.')
+    });
+  }
+
+  hayFiltros() { return !!(this.q() || this.tipo() || this.estado()); }
+  limpiarFiltros() { this.router.navigate([], { relativeTo: this.route, queryParams: this.tipo() === 'kit' ? { tipo: 'kit' } : {} }); }
 
   alGuardar(p: Producto) {
     this.enEdicion.set(undefined);

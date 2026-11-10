@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export type NombreIcono =
   | 'productos' | 'kits' | 'cotizaciones' | 'imagenes' | 'usuarios' | 'ajustes' | 'inventario' | 'importar'
   | 'descargar' | 'subir' | 'mas' | 'editar' | 'eliminar' | 'menu' | 'cerrar' | 'arriba' | 'abajo'
-  | 'sincronizar' | 'buscar' | 'whatsapp' | 'carrito' | 'check' | 'aviso' | 'excel' | 'camion' | 'escudo' | 'fabrica';
+  | 'sincronizar' | 'buscar' | 'whatsapp' | 'carrito' | 'check' | 'aviso' | 'excel' | 'camion' | 'escudo' | 'fabrica' | 'inicio';
 
 // Íconos de trazo del diseño (24×24). Siempre decorativos: el texto o el aria-label del botón da el nombre.
 @Component({
@@ -15,6 +15,7 @@ export type NombreIcono =
          [attr.stroke-width]="grosor()" stroke-linecap="round" stroke-linejoin="round" focusable="false">
       @switch (nombre()) {
         @case ('productos') { <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/> }
+        @case ('inicio') { <path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/> }
         @case ('kits') { <path d="M4 7h16v13H4zM9 7V4h6v3"/> }
         @case ('cotizaciones') { <path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5z"/> }
         @case ('whatsapp') { <path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5z"/> }

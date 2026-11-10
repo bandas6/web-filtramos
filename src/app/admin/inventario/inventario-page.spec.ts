@@ -20,7 +20,8 @@ async function montar(rol: 'admin' | 'bodega' | 'ventas') {
   const fixture = TestBed.createComponent(InventarioPage);
   fixture.detectChanges();
   const http = TestBed.inject(HttpTestingController);
-  http.expectOne((r) => r.url.endsWith('/admin/inventario')).flush({ ok: true, productos: FILAS, indicadores: { referenciasActivas: 2, bajoMinimo: 1, enCero: 0, unidadesReservadas: 3 } });
+  // Dos lecturas: la tabla y la lista completa para el buscador de referencias
+  http.match((r) => r.url.endsWith('/admin/inventario')).forEach((r) => r.flush({ ok: true, productos: FILAS, indicadores: { referenciasActivas: 2, bajoMinimo: 1, enCero: 0, unidadesReservadas: 3 } }));
   http.expectOne((r) => r.url.endsWith('/admin/movimientos')).flush({ ok: true, movimientos: MOVS });
   await fixture.whenStable();
   fixture.detectChanges();

@@ -6,6 +6,8 @@
   <button type="button" class="btn" (click)="descargarPlantilla()"><f-icono nombre="descargar" />Descargar plantilla oficial (.xlsx)</button>
 </header>
 
+<f-ayuda seccion="importar" />
+
 <ol class="pasos" aria-label="Pasos de la importación">
   @for (p of pasos; track p; let i = $index) {
     <li class="paso" [class.paso--actual]="paso() === i + 1" [class.paso--hecho]="paso() > i + 1"

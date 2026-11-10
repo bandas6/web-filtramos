@@ -60,105 +60,98 @@
   </div>
 </section>
 
+<!-- Accesos por tipo de filtro -->
+@if (tipos().length) {
+  <section class="contenedor seccion seccion--tipos" aria-labelledby="tipos-titulo">
+    <h2 id="tipos-titulo" class="seccion__titulo">Buscar por tipo de filtro</h2>
+    <ul class="tipos">
+      @for (t of tipos(); track t.valor) {
+        <li>
+          <a class="tipo" routerLink="/catalogo" [queryParams]="{ tipo: t.valor }">
+            <f-icono [nombre]="t.valor === 'kit' ? 'kits' : 'productos'" [tam]="22" />
+            <span class="tipo__nombre">{{ t.valor === 'kit' ? 'Kits' : t.nombre }}</span>
+            <span class="tipo__total">{{ t.total }} {{ t.total === 1 ? 'referencia' : 'referencias' }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+<!-- Más vendidos y kits: listas compactas de 3 (Movil-Inicio.png) -->
+@if (destacados().length || kits().length) {
+  <div class="contenedor listas">
+    @if (destacados().length) {
+      <section class="lista" aria-labelledby="dest-titulo">
+        <div class="lista__cab">
+          <h2 id="dest-titulo" class="seccion__titulo">{{ tituloDestacados() }}</h2>
+          <a routerLink="/catalogo" class="lista__enlace">Ver todo<span class="sr-only"> el catálogo</span></a>
+        </div>
+        <ul class="lista__items">
+          @for (p of destacados(); track p.slug) { <li><app-item-producto [p]="p" /></li> }
+        </ul>
+      </section>
+    }
+    @if (kits().length) {
+      <section class="lista lista--kits" id="kits" aria-labelledby="kits-titulo">
+        <div class="lista__cab">
+          <h2 id="kits-titulo" class="seccion__titulo">Kits de mantenimiento</h2>
+          <a routerLink="/catalogo" [queryParams]="{ tipo: 'kit' }" class="lista__enlace">Ver todo<span class="sr-only"> los kits</span></a>
+        </div>
+        <p class="lista__nota">Primario, seguridad y prefiltro en una sola compra.</p>
+        <ul class="lista__items">
+          @for (k of kits(); track k.slug) { <li><app-item-producto [p]="k" /></li> }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<!-- Fabricación a medida: solo el aviso; el formulario está en /a-medida -->
+<section class="contenedor seccion" aria-labelledby="medida-titulo">
+  <div class="aviso-medida">
+    <div>
+      <p class="kicker kicker--claro">Solo un fabricante puede hacerlo</p>
+      <h2 id="medida-titulo">¿No encuentra su filtro? Lo fabricamos a la medida.</h2>
+      <p>Envíenos las medidas o una foto del filtro usado{{ ajustes.valores().tiempoRespuestaCotizacion ? ' y le cotizamos en ' + ajustes.valores().tiempoRespuestaCotizacion : ' y le cotizamos' }}.</p>
+    </div>
+    <a routerLink="/a-medida" class="btn btn--verde aviso-medida__btn">Pedir fabricación a medida</a>
+  </div>
+</section>
+
+<!-- Empresas: sectores en una fila -->
+<section class="contenedor seccion" id="sectores" aria-labelledby="sect-titulo">
+  <div class="empresas">
+    <div class="empresas__texto">
+      <h2 id="sect-titulo" class="seccion__titulo">¿Compra para una empresa o flota?</h2>
+      <p>Precio por volumen y una persona de contacto.</p>
+    </div>
+    <ul class="sectores" aria-label="Sectores que atendemos">
+      @for (s of sectores; track s) { <li>{{ s }}</li> }
+    </ul>
+    @if (enlaceVolumen(); as wa) {
+      <a [href]="wa" class="btn empresas__btn" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />Pedir precio por volumen</a>
+    } @else {
+      <a routerLink="/catalogo" class="btn empresas__btn">Armar un pedido</a>
+    }
+  </div>
+</section>
+
 <!-- Franja de confianza -->
 <section class="confianza" aria-label="Por qué Filtramos">
   <div class="contenedor confianza__rejilla">
     <div class="beneficio"><f-icono nombre="fabrica" [tam]="22" />
-      <div><div class="beneficio__t">Fabricación nacional</div><div class="beneficio__d">Hecho en nuestra planta, con control de cada lote.</div></div></div>
+      <div><div class="beneficio__t">Fabricación nacional</div><div class="beneficio__d">Control en cada lote</div></div></div>
     <div class="beneficio"><f-icono nombre="camion" [tam]="22" />
-      <div><div class="beneficio__t">{{ ajustes.valores().tiempoDespacho ? 'Despacho en ' + ajustes.valores().tiempoDespacho : 'Despacho a todo el país' }}</div>
-        <div class="beneficio__d">Envíos a todo el país.</div></div></div>
+      <div><div class="beneficio__t">{{ ajustes.valores().tiempoDespacho ? 'Despacho en ' + ajustes.valores().tiempoDespacho : 'Despacho nacional' }}</div>
+        <div class="beneficio__d">A todo el país</div></div></div>
     @if (ajustes.valores().garantia) {
       <div class="beneficio"><f-icono nombre="escudo" [tam]="22" />
-        <div><div class="beneficio__t">Garantía de fábrica</div><div class="beneficio__d">Respaldo directo del fabricante. <a routerLink="/legal" fragment="garantia">Ver términos</a></div></div></div>
+        <div><div class="beneficio__t">Garantía de fábrica</div><div class="beneficio__d"><a routerLink="/legal" fragment="garantia">Ver términos</a></div></div></div>
     }
-    <div class="beneficio"><f-icono nombre="whatsapp" [tam]="22" />
-      <div><div class="beneficio__t">Asesoría técnica</div><div class="beneficio__d">Le ayudamos a encontrar la referencia correcta.</div></div></div>
-  </div>
-</section>
-
-<!-- Más vendidos -->
-@if (destacados().length) {
-  <section class="contenedor seccion" id="catalogo" aria-labelledby="dest-titulo">
-    <div class="seccion__cab">
-      <div>
-        <p class="kicker">Catálogo</p>
-        <h2 id="dest-titulo">{{ tituloDestacados() }}</h2>
-      </div>
-      <a routerLink="/catalogo" class="seccion__enlace">Ver todo el catálogo →</a>
-    </div>
-    <div class="rejilla-productos">
-      @for (p of destacados(); track p.slug) { <app-tarjeta-producto [p]="p" /> }
-    </div>
-  </section>
-}
-
-<!-- Kits -->
-@if (kits().length) {
-  <section class="contenedor seccion" id="kits" aria-labelledby="kits-titulo">
-    <div class="kits">
-      <div class="seccion__cab">
-        <div>
-          <p class="kicker">Nuevo</p>
-          <h2 id="kits-titulo">Kits de mantenimiento por máquina</h2>
-          <p class="seccion__lead">Todo lo que necesita para el cambio, en una sola compra.</p>
-        </div>
-        <a routerLink="/catalogo" [queryParams]="{ tipo: 'kit' }" class="seccion__enlace">Ver todos los kits →</a>
-      </div>
-      <div class="kits__rejilla">
-        @for (k of kits(); track k.slug) {
-          <article class="kit">
-            @if (k.aplicaciones?.length) { <p class="kit__para">{{ k.aplicaciones![0] }}</p> }
-            <h3 class="kit__titulo"><a [routerLink]="['/filtro', k.slug]">{{ k.referencia }}</a></h3>
-            <ul class="kit__lista">
-              @for (c of equivalenciasKit(k); track c) { <li><f-icono nombre="check" [tam]="16" [grosor]="2.2" />{{ c }}</li> }
-            </ul>
-            <div class="kit__pie">
-              <div class="kit__precio">{{ k.precio ? pesos(k.precio) : 'Cotizar' }}</div>
-              <a [routerLink]="['/filtro', k.slug]" class="btn btn--verde">Ver kit<span class="sr-only"> {{ k.referencia }}</span></a>
-            </div>
-          </article>
-        }
-      </div>
-    </div>
-  </section>
-}
-
-<!-- Fabricación a medida -->
-<section class="medida" id="medida" aria-labelledby="medida-titulo">
-  <div class="contenedor medida__fila">
-    <div class="medida__texto">
-      <p class="kicker">Solo un fabricante puede hacerlo</p>
-      <h2 id="medida-titulo">¿No encuentra su filtro? Lo fabricamos a la medida.</h2>
-      <p class="seccion__lead">Máquinas antiguas, importadas o con repuestos difíciles de conseguir. Envíenos las medidas o una foto del filtro usado y le cotizamos.</p>
-      <ol class="pasos">
-        <li><span class="pasos__n">1</span><div><b>Envíe medidas o una foto</b><span>Diámetros, altura y tipo de tapa, o una foto con un metro al lado.</span></div></li>
-        <li><span class="pasos__n">2</span><div><b>{{ ajustes.valores().tiempoRespuestaCotizacion ? 'Cotizamos en ' + ajustes.valores().tiempoRespuestaCotizacion : 'Le enviamos la cotización' }}</b><span>Precio, cantidad mínima y fecha de entrega.</span></div></li>
-        <li><span class="pasos__n">3</span><div><b>Fabricamos y despachamos</b><span>Guardamos su referencia para la próxima compra.</span></div></li>
-      </ol>
-    </div>
-    <div class="medida__form tarjeta"><app-form-medida /></div>
-  </div>
-</section>
-
-<!-- Sectores -->
-<section class="contenedor seccion" id="sectores" aria-labelledby="sect-titulo">
-  <h2 id="sect-titulo">Filtros para su sector</h2>
-  <p class="seccion__lead">¿Compra para una empresa o flota? Pida precio por volumen y una persona de contacto.</p>
-  <ul class="sectores">
-    @for (s of sectores; track s.n) {
-      <li class="sector"><span class="mono sector__n">{{ s.n }}</span><b>{{ s.titulo }}</b><span>{{ s.texto }}</span></li>
+    @if (ajustes.whatsapp()) {
+      <div class="beneficio"><f-icono nombre="whatsapp" [tam]="22" />
+        <div><div class="beneficio__t">Asesoría técnica</div><div class="beneficio__d">Por WhatsApp</div></div></div>
     }
-  </ul>
-</section>
-
-<!-- Recordatorio -->
-<section class="contenedor seccion seccion--ultima" aria-labelledby="rec-titulo">
-  <div class="banda">
-    <div class="banda__texto">
-      <h2 id="rec-titulo">Le avisamos cuando toque cambiar el filtro.</h2>
-      <p>Registre su máquina o su flota y reciba un recordatorio por WhatsApp con el enlace para pedir. Sin costo.</p>
-    </div>
-    <div class="banda__form"><app-form-recordatorio /></div>
   </div>
 </section>

@@ -22,3 +22,10 @@
   .filtros select { flex: 1 1 140px; }
   .acciones { justify-content: flex-end; }
 }
+
+// "Agregar precio →" bajo el badge de borrador
+.siguiente {
+  display: block; margin-top: 4px; padding: 4px 0; border: none; background: none; cursor: pointer;
+  font: 600 13px var(--f-font-body); color: var(--f-green-dark); text-decoration: underline; text-underline-offset: 2px;
+  &:hover { color: var(--f-ink); }
+}

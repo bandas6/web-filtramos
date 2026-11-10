@@ -10,10 +10,12 @@ type Paso = 1 | 2 | 3 | 4;
 // Asistente de importación (Importar.png): subir -> asociar columnas -> revisar -> confirmar.
 // La asociación es manual. Solo se proponen columnas con el encabezado exacto de la plantilla
 // oficial o la asociación usada la vez anterior. Las sugerencias por nombre esperan el Excel real.
+import { AyudaSeccion } from '../ayuda/componentes';
+
 @Component({
   selector: 'app-importar-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icono],
+  imports: [AyudaSeccion, RouterLink, Icono],
   templateUrl: './importar-page.html',
   styleUrl: './importar-page.scss'
 })

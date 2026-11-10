@@ -6,10 +6,12 @@ import { EstadoAjustes } from '../estado-ajustes';
 import { CampoAjuste } from '../modelos';
 
 // Los campos vienen definidos por la API (utils/ajustes.js): agregar uno allá lo muestra aquí.
+import { AyudaSeccion } from '../ayuda/componentes';
+
 @Component({
   selector: 'app-ajustes-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [AyudaSeccion, ReactiveFormsModule],
   templateUrl: './ajustes-page.html',
   styleUrl: './ajustes-page.scss'
 })

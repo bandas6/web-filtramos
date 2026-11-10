@@ -39,7 +39,7 @@
       </div>
       <div class="rejilla">
         <div class="field">
-          <label for="pf-siigo">Código en Siigo <small>(opcional)</small></label>
+          <label for="pf-siigo">Código en Siigo <small>(opcional)</small><f-info campo="codigoSiigo" etiqueta="el código en Siigo" /></label>
           <input id="pf-siigo" class="mono" formControlName="codigoSiigo" autocomplete="off" />
         </div>
         <div class="field">
@@ -62,7 +62,7 @@
         </div>
       </div>
       <div class="lista" formArrayName="volumen">
-        <div class="lista__titulo">Precio por volumen</div>
+        <div class="lista__titulo">Precio por volumen <f-info campo="precioVolumen" etiqueta="el precio por volumen" /></div>
         @for (t of volumen.controls; track t; let i = $index) {
           <div class="fila" [formGroupName]="i">
             <div class="field">
@@ -111,7 +111,7 @@
             </div>
           }
           @if (!soloLectura()) {
-            <button type="button" class="btn" (click)="agregarComponente()"><f-icono nombre="mas" />Agregar componente</button>
+            <button type="button" id="pf-componentes" class="btn" (click)="agregarComponente()"><f-icono nombre="mas" />Agregar componente</button>
           }
         </div>
       </fieldset>
@@ -168,7 +168,7 @@
         <p class="sin-fotos">Sin fotos.</p>
       }
       @if (!soloLectura()) {
-        <button type="button" class="btn" (click)="eligiendoFotos.set(!eligiendoFotos())" [attr.aria-expanded]="eligiendoFotos()">
+        <button type="button" id="pf-fotos" class="btn" (click)="eligiendoFotos.set(!eligiendoFotos())" [attr.aria-expanded]="eligiendoFotos()">
           <f-icono nombre="imagenes" />Agregar desde la biblioteca
         </button>
         @if (eligiendoFotos()) {
@@ -192,7 +192,7 @@
       <div class="rejilla rejilla--3">
         @for (c of fichaNumerica; track c.clave) {
           <div class="field">
-            <label [for]="'pf-' + c.clave">{{ c.etiqueta }}</label>
+            <label [for]="'pf-' + c.clave">{{ c.etiqueta }}@if (c.info) { <f-info [campo]="c.info" [etiqueta]="c.etiqueta" /> }</label>
             <input [id]="'pf-' + c.clave" type="number" min="0" step="any" inputmode="decimal" class="mono" [formControlName]="c.clave" />
           </div>
         }
@@ -216,11 +216,11 @@
     <fieldset>
       <legend>Publicación e inventario</legend>
       <label class="check">
-        <input type="checkbox" formControlName="publicar" />
+        <input type="checkbox" id="pf-publicar" formControlName="publicar" />
         <span>Publicar en la web y en el catálogo PDF cuando esté completo</span>
       </label>
       <div class="field field--corto">
-        <label for="pf-min">Stock mínimo</label>
+        <label for="pf-min">Stock mínimo <f-info campo="stockMinimo" etiqueta="el stock mínimo" /></label>
         <input id="pf-min" type="number" min="0" step="1" inputmode="numeric" class="mono" formControlName="stockMinimo" />
       </div>
     </fieldset>

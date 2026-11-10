@@ -9,3 +9,4 @@ h1 { font-size: 32px; }
   img { width: 100%; height: 150px; object-fit: contain; background: var(--f-ground); } }
 .item__pie { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; }
 .item__nombre { flex: 1; min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vacio-lista { grid-column: 1 / -1; list-style: none; background: #fff; border: 1px dashed var(--f-line); border-radius: var(--f-radio-tarjeta); }

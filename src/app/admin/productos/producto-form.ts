@@ -1,3 +1,5 @@
+import { CampoAyuda } from '../ayuda/textos';
+import { InfoCampo } from '../ayuda/componentes';
 import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnInit, output, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,7 +20,7 @@ const lineas = (v: string) => String(v || '').split(/\n|,/).map((x) => x.trim())
 @Component({
   selector: 'app-producto-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, Icono, BadgeEstado, RouterLink],
+  imports: [InfoCampo, ReactiveFormsModule, Icono, BadgeEstado, RouterLink],
   templateUrl: './producto-form.html',
   styleUrl: './producto-form.scss',
   host: { '(document:keydown.escape)': 'cerrar.emit()' }
@@ -30,6 +32,8 @@ export class ProductoForm implements OnInit {
   producto = input<Producto | null>(null);
   tipoInicial = input('');
   soloLectura = input(false);
+  // id del campo que se enfoca al abrir (p. ej. "pf-precio" desde "Agregar precio")
+  campoInicial = input<string | null>(null);
   guardado = output<Producto>();
   cerrar = output<void>();
 
@@ -38,9 +42,9 @@ export class ProductoForm implements OnInit {
   readonly fichaNumerica = [
     { clave: 'diametroExterno', etiqueta: 'Diámetro externo (mm)' },
     { clave: 'diametroInterno', etiqueta: 'Diámetro interno (mm)' },
-    { clave: 'alto', etiqueta: 'Alto (mm)' },
-    { clave: 'alturaPliegue', etiqueta: 'Altura de pliegue (mm)' },
-    { clave: 'cortePapel', etiqueta: 'Corte de papel (mm)' },
+    { clave: 'alto', etiqueta: 'Alto (mm)', info: 'alto' as CampoAyuda },
+    { clave: 'alturaPliegue', etiqueta: 'Altura de pliegue (mm)', info: 'alturaPliegue' as CampoAyuda },
+    { clave: 'cortePapel', etiqueta: 'Corte de papel (mm)', info: 'cortePapel' as CampoAyuda },
     { clave: 'cantidadPliegues', etiqueta: 'Cantidad de pliegues' }
   ];
   readonly fichaTexto = [
@@ -106,7 +110,15 @@ export class ProductoForm implements OnInit {
       next: (l) => this.opcionesKit.set(l.filter((o) => o.uid !== p?.uid)),
       error: () => {}
     });
-    setTimeout(() => this.primerCampo()?.nativeElement.focus());
+    setTimeout(() => this.enfocarInicial());
+  }
+
+  private enfocarInicial() {
+    const campo = this.campoInicial();
+    if (campo === 'pf-fotos') this.eligiendoFotos.set(true);
+    const el = campo ? document.getElementById(campo) : null;
+    if (el) { el.focus(); el.scrollIntoView({ block: 'center' }); }
+    else this.primerCampo()?.nativeElement.focus();
   }
 
   private cargar(p: Producto) {

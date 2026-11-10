@@ -39,6 +39,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: 16px;
   padding: 48px 16px;
 }
 
@@ -66,6 +68,27 @@
   background: #fbeee4;
   color: #8a3a0c;
   font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.45;
+}
+.alert--bloqueo { background: #fff6dc; color: #6b4a00; }
+.alert--servidor { background: #eceeec; color: #2b2f2b; }
+
+// Usuarios de demostración (solo con la API en memoria)
+.demo {
+  width: 100%; max-width: 400px; border: 1px dashed var(--f-control); border-radius: 12px; padding: 14px 16px; background: #fff;
+  h2 { font-family: var(--f-font-body); font-size: 14px; font-weight: 700; margin: 0; }
+  p { margin: 2px 0 8px; font-size: 13px; color: var(--f-muted); }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+}
+.demo__usuario {
+  width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: 8px; text-align: left; padding: 8px 10px;
+  border: 1px solid var(--f-line); border-radius: 8px; background: var(--f-ground); cursor: pointer; font: 13px var(--f-font-body); color: var(--f-ink);
+  b { grid-row: span 2; text-transform: capitalize; align-self: center; }
+  span { overflow-wrap: anywhere; }
+  &:hover { border-color: var(--f-ink); }
 }
 
 @media (max-width: 600px) {

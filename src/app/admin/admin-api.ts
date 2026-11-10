@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { PedidoAdmin, RecordatorioAdmin, SolicitudMedidaAdmin, AnalisisImportacion, CampoAjuste, FilaInventario, ResultadoImportacion, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
+import { InicioPanel, PedidoAdmin, RecordatorioAdmin, SolicitudMedidaAdmin, AnalisisImportacion, CampoAjuste, FilaInventario, ResultadoImportacion, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
 
 // Acceso a /api/admin. El interceptor agrega el token.
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,13 @@ export class AdminApi {
   }
   eliminarProducto(id: string): Observable<unknown> {
     return this.http.delete(`${this.url}/productos/${id}`);
+  }
+  producto(id: string): Observable<Producto> {
+    return this.http.get<any>(`${this.url}/productos/${id}`).pipe(map((r) => r.producto));
+  }
+  // Inicio del panel: primeros pasos y avisos del día
+  inicio(): Observable<InicioPanel> {
+    return this.http.get<InicioPanel>(`${this.url}/inicio`);
   }
   resumen(): Observable<Resumen> {
     return this.http.get<any>(`${this.url}/resumen`).pipe(map((r) => r.resumen));

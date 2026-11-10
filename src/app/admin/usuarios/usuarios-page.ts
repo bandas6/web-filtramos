@@ -16,10 +16,12 @@ function generarClave(): string {
   return Array.from(bytes, (b) => abc[b % abc.length]).join('');
 }
 
+import { AyudaSeccion } from '../ayuda/componentes';
+
 @Component({
   selector: 'app-usuarios-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, Icono, SlicePipe],
+  imports: [AyudaSeccion, ReactiveFormsModule, Icono, SlicePipe],
   templateUrl: './usuarios-page.html',
   styleUrl: './usuarios-page.scss'
 })

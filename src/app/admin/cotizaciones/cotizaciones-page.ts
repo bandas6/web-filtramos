@@ -14,10 +14,12 @@ const NOMBRE_ESTADO: Record<string, string> = {
   cotizado: 'Cotizado', cerrado: 'Cerrado', activo: 'Activo', inactivo: 'Inactivo'
 };
 
+import { AyudaSeccion, Vacio } from '../ayuda/componentes';
+import { VACIOS } from '../ayuda/textos';
 @Component({
   selector: 'app-cotizaciones-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icono],
+  imports: [AyudaSeccion, Vacio, Icono],
   templateUrl: './cotizaciones-page.html',
   styleUrl: './cotizaciones-page.scss'
 })
@@ -33,6 +35,7 @@ export class CotizacionesPage implements OnInit {
   readonly whatsappLegible = whatsappLegible;
   readonly nombreEstado = NOMBRE_ESTADO;
   readonly siguientes = SIGUIENTES_ESTADOS;
+  readonly vacios = VACIOS;
   readonly pestanas: { valor: Pestana; texto: string }[] = [
     { valor: 'pedidos', texto: 'Pedidos' }, { valor: 'medida', texto: 'Fabricación a medida' }, { valor: 'recordatorios', texto: 'Recordatorios' }
   ];

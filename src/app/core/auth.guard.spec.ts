@@ -29,7 +29,7 @@ describe('Guards', () => {
   });
 
   it('adminGuard: bodega o ventas vuelven al catálogo', async () => {
-    expect(url(await ejecutar(adminGuard, true, false))).toBe('/admin/productos');
+    expect(url(await ejecutar(adminGuard, true, false))).toBe('/admin');
   });
 
   it('adminGuard: admin entra', async () => {

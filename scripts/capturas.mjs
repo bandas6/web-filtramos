@@ -34,6 +34,10 @@ const PANTALLAS = [
   // Sitio público
   ['inicio', '/', false],
   ['catalogo', '/catalogo', false],
+  ['catalogo-filtrado', '/catalogo?disponibilidad=disponible,ultimas&orden=precio-desc', false],
+  ['catalogo-filtros-movil', '/catalogo', false, async (p, ancho) => { if (ancho < 900) { await p.getByRole('button', { name: /^Filtros/ }).click(); await p.waitForTimeout(200); } }],
+  ['menu-sitio', '/catalogo', false, async (p, ancho) => { if (ancho < 900) { await p.getByRole('button', { name: 'Abrir menú' }).click(); await p.waitForTimeout(200); } }],
+  ['a-medida', '/a-medida', false],
   ['producto', '/filtro/demo-ap-001', false],
   ['producto-kit', '/filtro/demo-kit-001', false],
   ['pedido', '/filtro/demo-as-001', false, async (p) => { await p.getByRole('button', { name: /Agregar al pedido/ }).first().click(); await p.goto(`${BASE}/pedido`); await p.waitForLoadState('networkidle'); }],
@@ -41,6 +45,8 @@ const PANTALLAS = [
   ['legal', '/legal', false],
   // Panel
   ['login', '/admin/login', false],
+  ['login-error', '/admin/login', false, async (p) => { await p.getByLabel('Correo').fill('admin@demo.local'); await p.getByLabel('Contraseña').fill('mal-escrita'); await p.getByRole('button', { name: 'Entrar' }).click(); await p.getByRole('alert').waitFor(); }],
+  ['inicio-panel', '/admin', true],
   ['cotizaciones', '/admin/cotizaciones', true],
   ['productos', '/admin/productos', true],
   ['producto-nuevo', '/admin/productos', true, async (p) => { await p.getByRole('button', { name: 'Nuevo producto' }).click(); await p.waitForTimeout(400); }],
@@ -48,6 +54,7 @@ const PANTALLAS = [
   ['kits', '/admin/productos?tipo=kit', true],
   ['inventario', '/admin/inventario', true],
   ['inventario-ajuste', '/admin/inventario', true, async (p) => { await p.getByRole('radio', { name: 'Ajuste' }).click(); await p.getByRole('combobox', { name: 'Referencia', exact: true }).fill('DEMO-AP-002'); }],
+  ['inventario-sugerencias', '/admin/inventario', true, async (p) => { await p.getByRole('combobox', { name: 'Referencia', exact: true }).fill('DEMO-A'); await p.waitForTimeout(200); }],
   ['historial', '/admin/inventario/historial', true],
   ['importar', '/admin/importar', true],
   ['importar-asociar', '/admin/importar', true, async (p) => { if (EXCEL) await prepararImportacion(p); }],
@@ -75,7 +82,7 @@ for (const ancho of ANCHOS) {
       await page.getByLabel('Correo').fill(email);
       await page.getByLabel('Contraseña').fill(password);
       await page.getByRole('button', { name: 'Entrar' }).click();
-      await page.waitForURL('**/admin/productos**');
+      await page.waitForURL((u) => new URL(u).pathname === '/admin');
       conSesion = true;
     }
     await page.goto(`${BASE}${ruta}`);

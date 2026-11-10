@@ -3,6 +3,8 @@
   <p class="nota">Lo que llega del sitio. Confirmar un pedido reserva el stock; despacharlo lo descuenta.</p>
 </header>
 
+<f-ayuda seccion="cotizaciones" />
+
 <div class="barra">
   <div class="pestanas" role="tablist" aria-label="Tipo de solicitud">
     @for (p of pestanas; track p.valor) {
@@ -54,7 +56,7 @@
             </div>
           </li>
         } @empty {
-          <li class="vacio">{{ cargando() ? 'Cargando…' : 'No hay pedidos.' }}</li>
+          <li class="vacio">@if (cargando()) { Cargando… } @else if (estado()) { <f-vacio [titulo]="vacios.filtroEstado.titulo" [texto]="vacios.filtroEstado.texto" /> } @else { <f-vacio [titulo]="vacios.pedidos.titulo" [texto]="vacios.pedidos.texto" /> }</li>
         }
       </ul>
     }
@@ -96,7 +98,7 @@
             } @else if (s.notaInterna) { <p class="muted">Nota: {{ s.notaInterna }}</p> }
           </li>
         } @empty {
-          <li class="vacio">{{ cargando() ? 'Cargando…' : 'No hay solicitudes.' }}</li>
+          <li class="vacio">@if (cargando()) { Cargando… } @else if (estado()) { <f-vacio [titulo]="vacios.filtroEstado.titulo" [texto]="vacios.filtroEstado.texto" /> } @else { <f-vacio [titulo]="vacios.medida.titulo" [texto]="vacios.medida.texto" /> }</li>
         }
       </ul>
     }
@@ -130,7 +132,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="5" class="tabla__vacia">{{ cargando() ? 'Cargando…' : 'No hay recordatorios.' }}</td></tr>
+              <tr><td colspan="5" class="tabla__vacia">@if (cargando()) { Cargando… } @else if (estado()) { <f-vacio [titulo]="vacios.filtroEstado.titulo" [texto]="vacios.filtroEstado.texto" /> } @else { <f-vacio [titulo]="vacios.recordatorios.titulo" [texto]="vacios.recordatorios.texto" /> }</td></tr>
             }
           </tbody>
         </table>

@@ -3,6 +3,8 @@
   <p class="nota">Biblioteca de fotos para los productos. JPG, PNG o WEBP, máximo 5 MB. Use fotos reales del producto.</p>
 </header>
 
+<f-ayuda seccion="imagenes" />
+
 <form class="tarjeta subida" (submit)="$event.preventDefault(); subir(archivoInput)">
   <div class="field">
     <label for="img-archivo">Imagen</label>
@@ -31,6 +33,6 @@
       </div>
     </li>
   } @empty {
-    <li class="muted">Todavía no hay imágenes.</li>
+    <li class="vacio-lista"><f-vacio [titulo]="vacios.imagenes.titulo" [texto]="vacios.imagenes.texto + ' Use el formulario de arriba.'" /></li>
   }
 </ul>

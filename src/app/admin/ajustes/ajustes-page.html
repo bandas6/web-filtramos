@@ -3,6 +3,8 @@
   <p class="nota">Datos del negocio que se muestran en el sitio. Si un dato está vacío, el sitio oculta esa línea.</p>
 </header>
 
+<f-ayuda seccion="ajustes" />
+
 @if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
 
 @if (!cargando()) {

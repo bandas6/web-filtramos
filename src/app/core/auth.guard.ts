@@ -18,7 +18,7 @@ export const adminGuard: CanActivateFn = () => {
   return auth.verificarSesion().pipe(
     map((ok) => {
       if (!ok) return router.createUrlTree(['/admin/login']);
-      return auth.esAdmin() ? true : router.createUrlTree(['/admin/productos']);
+      return auth.esAdmin() ? true : router.createUrlTree(['/admin']);
     })
   );
 };

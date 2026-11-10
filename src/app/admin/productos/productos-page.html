@@ -15,6 +15,8 @@
   </div>
 </header>
 
+<f-ayuda seccion="productos" />
+
 <section class="indicadores" aria-label="Calidad del catálogo">
   <f-indicador titulo="Publicados" [valor]="resumen()?.publicados" />
   <f-indicador titulo="Sin foto real" [valor]="resumen()?.sinFoto" [alerta]="true" />
@@ -52,7 +54,7 @@
         <th scope="col">Equivalencias</th>
         <th scope="col">Precio público</th>
         <th scope="col">Stock</th>
-        <th scope="col">Estado</th>
+        <th scope="col">Estado <f-info campo="publicado" etiqueta="publicado o borrador" /></th>
         <th scope="col" class="derecha">Acciones</th>
       </tr>
     </thead>
@@ -75,7 +77,13 @@
           <td data-etiqueta="Equivalencias" class="texto-2 ancho">{{ equivalencias(p) }}</td>
           <td data-etiqueta="Precio público" class="precio">{{ pesos(p.precios?.publico) }}</td>
           <td data-etiqueta="Stock" class="mono">{{ p.tipo === 'kit' ? '—' : p.stock }}</td>
-          <td data-etiqueta="Estado"><f-badge-estado [publicado]="p.publicado" [motivos]="p.motivosBorrador" /></td>
+          <td data-etiqueta="Estado">
+            <f-badge-estado [publicado]="p.publicado" [motivos]="p.motivosBorrador" />
+            <!-- Siguiente paso: qué hacer para que se publique -->
+            @if (!p.publicado && auth.esAdmin() && siguientePaso[p.motivosBorrador[0]]; as paso) {
+              <button type="button" class="siguiente" (click)="editar(p, paso.campo)">{{ paso.texto }}<span class="sr-only"> a {{ p.referencia }}</span> →</button>
+            }
+          </td>
           <td class="derecha">
             <div class="acciones">
               <button type="button" class="btn-icono" (click)="editar(p)"
@@ -92,7 +100,20 @@
         </tr>
       } @empty {
         <tr><td colspan="6" class="tabla__vacia">
-          {{ cargando() ? 'Cargando…' : (q() || tipo() || estado() ? 'Ningún producto coincide con los filtros.' : 'Todavía no hay productos.') }}
+          @if (cargando()) { Cargando… }
+          @else if (hayFiltros() && !(esKits() && !q() && !estado())) {
+            <f-vacio [titulo]="vacios.productosFiltro.titulo" [texto]="vacios.productosFiltro.texto">
+              <button type="button" class="btn" (click)="limpiarFiltros()">Quitar filtros</button>
+            </f-vacio>
+          } @else {
+            <f-vacio [titulo]="esKits() ? 'Todavía no hay kits' : vacios.productos.titulo"
+                     [texto]="esKits() ? 'Un kit agrupa varios filtros que se cambian juntos en una máquina. Créelo con sus componentes y su precio.' : vacios.productos.texto">
+              @if (auth.esAdmin()) {
+                @if (!esKits()) { <a class="btn btn--verde" routerLink="/admin/importar"><f-icono nombre="subir" />Importar Excel</a> }
+                <button type="button" class="btn" (click)="nuevo()"><f-icono nombre="mas" />{{ esKits() ? 'Nuevo kit' : 'Nuevo producto' }}</button>
+              }
+            </f-vacio>
+          }
         </td></tr>
       }
     </tbody>
@@ -111,6 +132,6 @@
 </div>
 
 @if (enEdicion() !== undefined) {
-  <app-producto-form [producto]="enEdicion() ?? null" [tipoInicial]="esKits() ? 'kit' : ''" [soloLectura]="!auth.esAdmin()"
+  <app-producto-form [producto]="enEdicion() ?? null" [campoInicial]="campoInicial()" [tipoInicial]="esKits() ? 'kit' : ''" [soloLectura]="!auth.esAdmin()"
                      (guardado)="alGuardar($event)" (cerrar)="enEdicion.set(undefined)" />
 }

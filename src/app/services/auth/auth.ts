@@ -10,7 +10,11 @@ export interface Usuario {
   nombre: string;
   email: string;
   rol: 'admin' | 'bodega' | 'ventas';
+  preferencias?: Preferencias;
 }
+
+// Se guardan por usuario en la API (cuadros de ayuda cerrados, primeros pasos que no aplican)
+export interface Preferencias { ayudaCerrada: string[]; pasosNoAplica: string[]; }
 
 interface RespuestaAuth {
   ok: boolean;
@@ -58,6 +62,22 @@ export class Auth {
         return of(false);
       })
     );
+  }
+
+  readonly preferencias = computed<Preferencias>(() => ({
+    ayudaCerrada: this._usuario()?.preferencias?.ayudaCerrada || [],
+    pasosNoAplica: this._usuario()?.preferencias?.pasosNoAplica || []
+  }));
+
+  /** Cambia las preferencias al instante y las guarda en la API; si falla, vuelve atrás. */
+  guardarPreferencias(cambio: Partial<Preferencias>) {
+    const u = this._usuario();
+    if (!u) return;
+    const antes = this.preferencias();
+    this._usuario.set({ ...u, preferencias: { ...antes, ...cambio } });
+    this.http.patch<{ preferencias: Preferencias }>(`${environment.apiUrl}/auth/preferencias`, cambio).subscribe({
+      error: () => { const actual = this._usuario(); if (actual) this._usuario.set({ ...actual, preferencias: antes }); }
+    });
   }
 
   logout() {

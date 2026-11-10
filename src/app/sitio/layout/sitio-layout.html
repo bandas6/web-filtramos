@@ -9,7 +9,7 @@
   </div>
 </div>
 
-<header class="cabecera">
+<header class="cabecera" #cabecera>
   <div class="contenedor cabecera__fila">
     <a routerLink="/" class="cabecera__logo" aria-label="Filtramos, inicio">
       <img src="logo.png" alt="Filtramos · AIRE Puro Filtros" width="104" height="52" />
@@ -17,10 +17,10 @@
 
     <nav aria-label="Principal" class="cabecera__nav" [class.abierta]="menuAbierto()" id="nav-principal">
       <a routerLink="/catalogo">Catálogo</a>
-      <a routerLink="/" fragment="kits">Kits de mantenimiento</a>
-      <a routerLink="/" fragment="medida">Fabricación a medida</a>
+      <a routerLink="/catalogo" [queryParams]="{ tipo: 'kit' }">Kits</a>
+      <a routerLink="/a-medida">Fabricación a medida</a>
       <a routerLink="/" fragment="sectores">Empresas</a>
-      <a routerLink="." fragment="contacto">Contacto</a>
+      @if (hayContacto()) { <a [routerLink]="[]" fragment="contacto" (click)="cerrarMenu()">Contacto</a> }
     </nav>
 
     <div class="cabecera__acciones">
@@ -31,11 +31,20 @@
       @if (enlaceCotizar(); as wa) {
         <a [href]="wa" class="btn btn--verde cabecera__wa" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />Cotizar por WhatsApp</a>
       }
-      <button type="button" class="cabecera__menu" (click)="menuAbierto.set(!menuAbierto())"
-              [attr.aria-expanded]="menuAbierto()" aria-controls="nav-principal" aria-label="Menú">
+      <button type="button" class="cabecera__menu" #botonMenu (click)="alternarMenu()"
+              [attr.aria-expanded]="menuAbierto()" aria-controls="nav-principal"
+              [attr.aria-label]="menuAbierto() ? 'Cerrar menú' : 'Abrir menú'">
         <f-icono [nombre]="menuAbierto() ? 'cerrar' : 'menu'" [tam]="22" />
       </button>
     </div>
+
+    @if (!enInicio()) {
+      <form class="cabecera__buscar" role="search" aria-label="Buscar filtro" #fb (submit)="buscar($event, fb)">
+        <label for="cab-q" class="sr-only">Buscar por referencia, equivalencia o máquina</label>
+        <input id="cab-q" name="q" type="search" placeholder="Buscar referencia o equivalencia" autocomplete="off" />
+        <button type="submit" aria-label="Buscar"><f-icono nombre="buscar" [tam]="18" /></button>
+      </form>
+    }
   </div>
 </header>
 
@@ -43,7 +52,7 @@
   <router-outlet />
 </main>
 
-<footer id="contacto" class="pie">
+<footer id="contacto" class="pie" [class.pie--flotante]="enlaceCotizar() && !enFicha()">
   <div class="contenedor pie__rejilla">
     <div>
       <img src="logo.png" alt="Filtramos" width="88" height="44" />
@@ -53,23 +62,25 @@
       <h2>Productos</h2>
       <a routerLink="/catalogo">Catálogo completo</a>
       <a routerLink="/catalogo" [queryParams]="{ tipo: 'kit' }">Kits de mantenimiento</a>
-      <a routerLink="/" fragment="medida">Fabricación a medida</a>
+      <a routerLink="/a-medida">Fabricación a medida</a>
     </nav>
     <nav aria-label="Empresas">
       <h2>Empresas</h2>
       <a routerLink="/" fragment="sectores">Precio por volumen</a>
       <a routerLink="/pedido">Pedido de cotización</a>
     </nav>
-    <div>
-      <h2>Contacto</h2>
-      @if (numero()) { <a [href]="enlaceCotizar()" target="_blank" rel="noopener">WhatsApp {{ numero() }}</a> }
-      @if (ajustes.valores().correoContacto; as correo) { <a [href]="'mailto:' + correo">{{ correo }}</a> }
-      @if (direccion()) { <span>{{ direccion() }}</span> }
-    </div>
+    @if (hayContacto()) {
+      <div>
+        <h2>Contacto</h2>
+        @if (numero()) { <a [href]="enlaceCotizar()" target="_blank" rel="noopener">WhatsApp {{ numero() }}</a> }
+        @if (ajustes.valores().correoContacto; as correo) { <a [href]="'mailto:' + correo">{{ correo }}</a> }
+        @if (direccion()) { <span>{{ direccion() }}</span> }
+      </div>
+    }
   </div>
   <div class="contenedor pie__legal">
     <span>© {{ anio }} Filtramos SAS</span>
-    <a routerLink="/legal">Política de tratamiento de datos · Términos y garantía</a>
+    <a routerLink="/legal">Políticas{{ ajustes.valores().garantia ? ' y garantía' : '' }}</a>
   </div>
 </footer>
 
