@@ -18,9 +18,9 @@ const opciones = (el: HTMLElement) => Array.from(el.querySelectorAll('nav[aria-l
 
 describe('AdminLayout', () => {
   it('admin ve todo el menú; bodega no ve Imágenes, Usuarios ni Ajustes', async () => {
-    expect(opciones(await montar('admin', []))).toEqual(['Productos', 'Kits', 'Imágenes', 'Usuarios y roles', 'Ajustes']);
+    expect(opciones(await montar('admin', []))).toEqual(['Productos', 'Inventario', 'Kits', 'Imágenes', 'Usuarios y roles', 'Ajustes']);
     TestBed.resetTestingModule();
-    expect(opciones(await montar('bodega', []))).toEqual(['Productos', 'Kits']);
+    expect(opciones(await montar('bodega', []))).toEqual(['Productos', 'Inventario', 'Kits']);
   });
 
   it('aviso visible si falta el WhatsApp de ventas', async () => {

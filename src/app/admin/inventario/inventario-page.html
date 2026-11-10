@@ -1,0 +1,128 @@
+<header class="encabezado">
+  <div>
+    <h1>Inventario</h1>
+    <p class="encabezado__nota">Producto terminado. El stock se calcula a partir de los movimientos.</p>
+  </div>
+</header>
+
+<!-- Siigo: se conecta en la etapa G (pendiente de confirmar el plan con API) -->
+<section class="tarjeta siigo" aria-label="Sincronización con Siigo">
+  <span class="siigo__punto" aria-hidden="true"></span>
+  <div>
+    <div class="siigo__titulo">Siigo sin conectar</div>
+    <div class="siigo__nota">Las ventas se registran a mano como salidas hasta activar la sincronización.</div>
+  </div>
+</section>
+
+<section class="indicadores" aria-label="Resumen de inventario">
+  <f-indicador titulo="Referencias activas" [valor]="indicadores()?.referenciasActivas" />
+  <f-indicador titulo="Bajo el mínimo" [valor]="indicadores()?.bajoMinimo" [alerta]="true" nota="Programar producción" />
+  <f-indicador titulo="En cero · bajo pedido" [valor]="indicadores()?.enCero" />
+  <f-indicador titulo="Unidades reservadas" [valor]="indicadores()?.unidadesReservadas" nota="Pedidos sin despachar" />
+</section>
+
+@if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+<div class="columnas">
+  <section class="tarjeta stock" aria-labelledby="inv-stock">
+    <div class="stock__cabecera">
+      <h2 id="inv-stock">Stock por referencia</h2>
+      <label for="inv-q" class="sr-only">Buscar referencia</label>
+      <input id="inv-q" type="search" class="control stock__buscar" placeholder="Buscar referencia" (input)="buscar($any($event.target).value)" />
+      <label class="check stock__check">
+        <input type="checkbox" [checked]="soloBajo()" (change)="alternarBajo($any($event.target).checked)" /> Solo bajo mínimo
+      </label>
+    </div>
+    <table class="tabla tabla--tarjetas">
+      <caption class="sr-only">Stock por referencia</caption>
+      <thead>
+        <tr>
+          <th scope="col">Referencia</th>
+          <th scope="col">Disponible</th>
+          <th scope="col">Reservado</th>
+          <th scope="col">Mínimo</th>
+          <th scope="col">Nivel</th>
+          <th scope="col">Se muestra en la web</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filas(); track f.uid) {
+          <tr>
+            <td>
+              @if (!f.esKit && puedeRegistrar()) {
+                <button type="button" class="ref" (click)="usarReferencia(f)" [attr.aria-label]="'Registrar movimiento de ' + f.referencia">
+                  <span class="mono ref__codigo">{{ f.referencia }}</span>
+                </button>
+              } @else {
+                <div class="mono ref__codigo">{{ f.referencia }}</div>
+              }
+              <div class="ref__tipo">{{ f.esKit ? 'Kit (según componentes)' : (nombreTipo[f.tipo || ''] || 'Sin tipo') }}</div>
+            </td>
+            <td data-etiqueta="Disponible" class="mono num">{{ f.disponible }}</td>
+            <td data-etiqueta="Reservado" class="mono suave">{{ f.esKit ? '—' : f.reservado }}</td>
+            <td data-etiqueta="Mínimo" class="mono suave">{{ f.esKit ? '—' : f.stockMinimo }}</td>
+            <td data-etiqueta="Nivel" class="nivel-celda">
+              <div class="nivel" role="img" [attr.aria-label]="'Nivel ' + (f.nivel * 100 | number: '1.0-0') + '%'">
+                <div class="nivel__barra" [class]="'nivel__barra nivel__barra--' + f.estado" [style.width.%]="f.nivel * 100"></div>
+              </div>
+            </td>
+            <td data-etiqueta="Se muestra en la web"><f-disponibilidad [estado]="f.estado" [quedan]="f.quedan" /></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="tabla__vacia">{{ cargando() ? 'Cargando…' : (q() || soloBajo() ? 'Ninguna referencia coincide.' : 'Todavía no hay productos.') }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <div class="lateral">
+    @if (puedeRegistrar()) {
+      <form class="tarjeta mov-form" [formGroup]="form" (ngSubmit)="guardar()" novalidate aria-labelledby="inv-mov">
+        <h2 id="inv-mov">Registrar movimiento</h2>
+        <div class="segmentos" role="radiogroup" aria-label="Tipo de movimiento">
+          @for (t of tiposMovimiento; track t.valor; let i = $index) {
+            <button type="button" role="radio" class="segmento" [class.activo]="tipoMov() === t.valor"
+                    [attr.aria-checked]="tipoMov() === t.valor" [attr.tabindex]="tipoMov() === t.valor ? 0 : -1"
+                    (click)="elegirTipo(t.valor)" (keydown)="teclaTipo($event, i)">{{ t.nombre }}</button>
+          }
+        </div>
+        <div class="field">
+          <label for="mv-ref">Referencia</label>
+          <input id="mv-ref" class="mono ref-input" formControlName="referencia" list="mv-refs" autocomplete="off" />
+          <datalist id="mv-refs">
+            @for (r of referencias(); track r) { <option [value]="r"></option> }
+          </datalist>
+        </div>
+        <div class="dos">
+          <div class="field">
+            <label for="mv-cant">{{ tipoMov() === 'ajuste' ? 'Stock contado' : 'Cantidad' }}</label>
+            <input id="mv-cant" type="number" [min]="tipoMov() === 'ajuste' ? 0 : 1" step="1" inputmode="numeric" formControlName="cantidad" />
+          </div>
+          <div class="field">
+            <label for="mv-mot">Motivo</label>
+            <select id="mv-mot" formControlName="motivo">
+              @for (m of motivos(); track m) { <option [value]="m">{{ nombreMotivo[m] }}</option> }
+            </select>
+          </div>
+        </div>
+        @if (tipoMov() === 'ajuste') {
+          <p class="ayuda">Escriba lo que contó en bodega. Se registra la diferencia con el stock actual.</p>
+        }
+        <div class="field">
+          <label for="mv-nota">Nota <small>(opcional)</small></label>
+          <input id="mv-nota" formControlName="nota" placeholder="Ej.: número de lote" maxlength="300" />
+        </div>
+        @if (errorForm()) { <div class="alerta" role="alert">{{ errorForm() }}</div> }
+        <button type="submit" class="btn btn--verde btn--bloque" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar movimiento' }}</button>
+      </form>
+    }
+
+    <section class="tarjeta recientes" aria-labelledby="inv-rec">
+      <div class="recientes__cabecera">
+        <h2 id="inv-rec">Movimientos recientes</h2>
+        <a routerLink="/admin/inventario/historial">Ver historial</a>
+      </div>
+      <app-lista-movimientos [movimientos]="recientes()" />
+    </section>
+  </div>
+</div>

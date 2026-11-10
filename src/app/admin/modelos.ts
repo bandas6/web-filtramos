@@ -106,3 +106,52 @@ export function motivosDeBorrador(p: Partial<Producto>): string[] {
 
 const formatoPesos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 export const pesos = (n: number | null | undefined) => (n || n === 0 ? formatoPesos.format(n) : '—');
+
+// ---- Inventario (etapa C)
+export type EstadoDisponibilidad = 'disponible' | 'ultimas' | 'bajo-pedido';
+
+export interface FilaInventario {
+  uid: string;
+  referencia: string;
+  tipo?: string;
+  esKit: boolean;
+  stock: number | null;
+  reservado: number | null;
+  stockMinimo: number | null;
+  disponible: number;
+  estado: EstadoDisponibilidad;
+  quedan: number | null;
+  nivel: number;
+  componentes?: string[];
+}
+
+export interface IndicadoresInventario { referenciasActivas: number; bajoMinimo: number; enCero: number; unidadesReservadas: number; }
+
+export interface Movimiento {
+  uid: string;
+  producto: string;
+  referencia: string;
+  tipo: 'entrada' | 'salida' | 'ajuste' | 'reserva' | 'liberacion';
+  cantidad: number;
+  motivo: string;
+  origen: 'manual' | 'siigo' | 'importacion' | 'web';
+  referenciaExterna?: string;
+  usuarioNombre?: string;
+  nota?: string;
+  stockResultante?: number;
+  fecha: string;
+}
+
+export const NOMBRE_MOVIMIENTO: Record<string, string> = {
+  entrada: 'Entrada', salida: 'Salida', ajuste: 'Ajuste', reserva: 'Reserva', liberacion: 'Liberación'
+};
+export const NOMBRE_MOTIVO: Record<string, string> = {
+  produccion: 'Producción', venta: 'Venta', devolucion: 'Devolución', 'conteo-fisico': 'Conteo físico',
+  'carga-inicial': 'Carga inicial', 'pedido-web': 'Pedido web'
+};
+// Motivos que se pueden elegir al registrar a mano (iguales a services/inventario.js)
+export const MOTIVOS_MANUALES: Record<'entrada' | 'salida' | 'ajuste', string[]> = {
+  entrada: ['produccion', 'devolucion'],
+  salida: ['venta'],
+  ajuste: ['conteo-fisico']
+};

@@ -12,6 +12,7 @@ interface Opcion { texto: string; ruta: string; icono: NombreIcono; query?: Reco
 // Menú del diseño (Admin.png / Inventario.png). Las opciones de etapas futuras se agregan aquí.
 const OPCIONES: Opcion[] = [
   { texto: 'Productos', ruta: '/admin/productos', icono: 'productos' },
+  { texto: 'Inventario', ruta: '/admin/inventario', icono: 'inventario' },
   { texto: 'Kits', ruta: '/admin/productos', icono: 'kits', query: { tipo: 'kit' } },
   { texto: 'Imágenes', ruta: '/admin/imagenes', icono: 'imagenes', roles: ['admin'] },
   { texto: 'Usuarios y roles', ruta: '/admin/usuarios', icono: 'usuarios', roles: ['admin'] },

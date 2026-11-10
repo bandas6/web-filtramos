@@ -1,0 +1,65 @@
+// Medidas de diseno/html/Inventario.html
+:host { display: contents; }
+
+.encabezado { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+.encabezado h1 { font-size: 32px; }
+.encabezado__nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+
+.siigo { padding: 14px 18px; display: flex; gap: 12px; align-items: center; }
+.siigo__punto { width: 10px; height: 10px; border-radius: 50%; background: #9aa198; flex: none; }
+.siigo__titulo { font-weight: 600; }
+.siigo__nota { font-size: 13px; color: var(--f-muted); }
+
+.columnas { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+.stock { flex: 999 1 560px; min-width: 0; overflow: hidden; }
+.lateral { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+
+.stock__cabecera {
+  padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border-bottom: 1px solid var(--f-line-soft);
+  h2 { font-size: 20px; flex: 1 1 160px; }
+}
+.stock__buscar { flex: 0 1 240px; height: 40px; font-size: 14px; }
+.stock__check { font-size: 14px; align-items: center; input { margin-top: 0; width: 18px; height: 18px; } }
+
+.tabla th { padding: 11px 16px; }
+.ref { background: none; border: none; padding: 0; cursor: pointer; text-align: left; color: var(--f-ink); min-height: 24px;
+  &:hover .ref__codigo { text-decoration: underline; } }
+.ref__codigo { font-weight: 600; }
+.ref__tipo { font-size: 12px; color: var(--f-muted); }
+.num { font-weight: 600; }
+.suave { color: var(--f-muted); }
+.nivel-celda { width: 140px; }
+.nivel { height: 8px; border-radius: 4px; background: var(--f-line-soft); overflow: hidden; }
+.nivel__barra { height: 8px; border-radius: 4px; }
+.nivel__barra--disponible { background: var(--f-green); }
+.nivel__barra--ultimas { background: #c2611f; }
+.nivel__barra--bajo-pedido { background: #9aa198; }
+
+.mov-form { padding: 18px; display: flex; flex-direction: column; gap: 12px; h2 { font-size: 20px; } }
+.segmentos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.segmento {
+  height: 44px; border: 1px solid var(--f-control); background: #fff; color: var(--f-ink); border-radius: 8px;
+  font: 500 14px var(--f-font-body); cursor: pointer;
+  &.activo { border: 1.5px solid var(--f-ink); background: var(--f-ink); color: #fff; font-weight: 600; }
+}
+.ref-input { font-weight: 600; font-size: 15px; }
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ayuda { margin: -4px 0 0; font-size: 13px; color: var(--f-muted); }
+
+.recientes { padding: 18px; }
+.recientes__cabecera {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 12px;
+  h2 { font-size: 20px; }
+  a { font-size: 14px; font-weight: 600; padding: 8px 0; white-space: nowrap; flex: none; }
+}
+
+@media (max-width: 760px) {
+  .encabezado h1 { font-size: 28px; }
+  .stock__buscar { flex: 1 1 100%; }
+  .nivel-celda { width: auto; }
+}
+
+// En pantallas angostas el formulario va primero (bodega registra desde el celular)
+@media (max-width: 900px) {
+  .lateral { order: -1; }
+}

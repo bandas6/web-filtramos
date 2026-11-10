@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CampoAjuste, Imagen, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
+import { CampoAjuste, FilaInventario, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
 
 // Acceso a /api/admin. El interceptor agrega el token.
 @Injectable({ providedIn: 'root' })
@@ -33,6 +33,22 @@ export class AdminApi {
   }
   catalogoPdf(): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/productos/generarPdfHtml/pdfHtml`, { responseType: 'blob' });
+  }
+
+  // Inventario
+  inventario(filtros: { q?: string; soloBajoMinimo?: boolean } = {}): Observable<{ indicadores: IndicadoresInventario; productos: FilaInventario[] }> {
+    let params = new HttpParams();
+    if (filtros.q) params = params.set('q', filtros.q);
+    if (filtros.soloBajoMinimo) params = params.set('soloBajoMinimo', '1');
+    return this.http.get<any>(`${this.url}/inventario`, { params });
+  }
+  movimientos(filtros: { producto?: string; pagina?: number; porPagina?: number } = {}): Observable<{ movimientos: Movimiento[]; total: number; pagina: number; paginas: number; porPagina: number }> {
+    let params = new HttpParams();
+    for (const [k, v] of Object.entries(filtros)) if (v) params = params.set(k, String(v));
+    return this.http.get<any>(`${this.url}/movimientos`, { params });
+  }
+  registrarMovimiento(datos: { referencia: string; tipo: string; motivo: string; cantidad?: number | null; stockContado?: number | null; nota?: string }): Observable<Movimiento> {
+    return this.http.post<any>(`${this.url}/movimientos`, datos).pipe(map((r) => r.movimiento));
   }
 
   // Imágenes
