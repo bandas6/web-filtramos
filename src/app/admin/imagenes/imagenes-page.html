@@ -1,0 +1,36 @@
+<header>
+  <h1>Imágenes</h1>
+  <p class="nota">Biblioteca de fotos para los productos. JPG, PNG o WEBP, máximo 5 MB. Use fotos reales del producto.</p>
+</header>
+
+<form class="tarjeta subida" (submit)="$event.preventDefault(); subir(archivoInput)">
+  <div class="field">
+    <label for="img-archivo">Imagen</label>
+    <input #archivoInput id="img-archivo" type="file" accept="image/jpeg,image/png,image/webp" (change)="elegir(archivoInput)" />
+  </div>
+  <div class="field">
+    <label for="img-nombre">Nombre</label>
+    <input id="img-nombre" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
+  </div>
+  @if (vistaPrevia()) { <img class="previa" [src]="vistaPrevia()" alt="Vista previa de la imagen elegida" /> }
+  @if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+  <button type="submit" class="btn btn--verde" [disabled]="subiendo() || !archivo()">
+    <f-icono nombre="subir" />{{ subiendo() ? 'Subiendo…' : 'Subir imagen' }}
+  </button>
+</form>
+
+<ul class="rejilla">
+  @for (img of imagenes(); track img.uid) {
+    <li class="tarjeta item">
+      <img [src]="publicUrl + img.imagen" [alt]="img.nombre" loading="lazy" />
+      <div class="item__pie">
+        <span class="item__nombre">{{ img.nombre }}</span>
+        <button type="button" class="btn-icono btn-icono--peligro" (click)="eliminar(img)" [attr.aria-label]="'Eliminar ' + img.nombre">
+          <f-icono nombre="eliminar" />
+        </button>
+      </div>
+    </li>
+  } @empty {
+    <li class="muted">Todavía no hay imágenes.</li>
+  }
+</ul>

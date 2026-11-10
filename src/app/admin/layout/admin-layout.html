@@ -1,0 +1,58 @@
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<div class="panel">
+  <aside class="lateral">
+    <div class="lateral__top">
+      <a routerLink="/admin/productos" class="lateral__logo" aria-label="Filtramos, ir a Productos">
+        <img src="logo.png" alt="Filtramos" />
+      </a>
+      <button type="button" class="lateral__menu" (click)="menuAbierto.set(!menuAbierto())"
+              [attr.aria-expanded]="menuAbierto()" aria-controls="menu-panel">
+        <f-icono [nombre]="menuAbierto() ? 'cerrar' : 'menu'" [tam]="20" />
+        Menú
+      </button>
+    </div>
+
+    <div id="menu-panel" class="lateral__cuerpo" [class.abierto]="menuAbierto()">
+      <nav aria-label="Panel" class="lateral__nav">
+        @for (o of opciones(); track o.texto) {
+          <a [routerLink]="o.ruta" [queryParams]="o.query || null" class="lateral__opcion"
+             [class.activa]="activa(o)" [attr.aria-current]="activa(o) ? 'page' : null">
+            <f-icono [nombre]="o.icono" />{{ o.texto }}
+          </a>
+        }
+      </nav>
+
+      @if (auth.usuario(); as u) {
+        <div class="lateral__usuario">
+          <span class="lateral__avatar" aria-hidden="true">{{ iniciales() }}</span>
+          <div class="lateral__quien">
+            <div class="lateral__nombre">{{ u.nombre }}</div>
+            <div class="lateral__rol">{{ nombreRol() }}</div>
+          </div>
+          <button type="button" class="lateral__salir" (click)="salir()">Salir</button>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <main id="contenido" class="contenido" tabindex="-1">
+    @if (faltaWhatsapp()) {
+      <div class="alerta aviso-whatsapp" role="alert">
+        <f-icono nombre="aviso" />
+        <div>
+          <strong>Falta el WhatsApp de ventas.</strong>
+          Sin él, el sitio no puede mostrar el botón de WhatsApp ni recibir pedidos.
+          @if (auth.esAdmin()) {
+            <a routerLink="/admin/ajustes">Completar en Ajustes</a>
+          } @else {
+            Pida a un administrador que lo complete en Ajustes.
+          }
+        </div>
+      </div>
+    }
+    <router-outlet />
+  </main>
+</div>
+
+<f-avisos />

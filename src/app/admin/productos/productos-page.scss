@@ -1,0 +1,24 @@
+:host { display: contents; }
+
+.encabezado { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+.encabezado h1 { font-size: 32px; }
+.encabezado__nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+.encabezado__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.filtros__buscar { flex: 1 1 320px; padding: 0 14px; }
+
+.producto { display: flex; gap: 12px; align-items: center; }
+.producto__foto { width: 48px; height: 48px; border-radius: 6px; background: var(--f-placeholder); flex: none; object-fit: contain; }
+.producto__ref { font-weight: 600; font-size: 15px; }
+.producto__tipo { color: var(--f-muted); font-size: 13px; }
+.texto-2 { color: var(--f-text-2); }
+.precio { font-weight: 600; }
+.acciones { display: flex; gap: 6px; justify-content: flex-end; }
+
+@media (max-width: 760px) {
+  .encabezado h1 { font-size: 28px; }
+  .encabezado__acciones { width: 100%; .btn { flex: 1 1 auto; } }
+  .filtros select { flex: 1 1 140px; }
+  .acciones { justify-content: flex-end; }
+}

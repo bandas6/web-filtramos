@@ -62,7 +62,7 @@ export class Auth {
 
   logout() {
     this.limpiar();
-    this.router.navigateByUrl('/login');
+    this.router.navigateByUrl('/admin/login');
   }
 
   private limpiar() {

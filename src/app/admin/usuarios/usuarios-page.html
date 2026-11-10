@@ -1,0 +1,125 @@
+<header class="encabezado">
+  <div>
+    <h1>Usuarios y roles</h1>
+    <p class="encabezado__nota">Administrador: todo. Bodega: inventario. Ventas: consulta y cotizaciones.</p>
+  </div>
+  <button type="button" class="btn btn--verde" (click)="creando.set(!creando())" [attr.aria-expanded]="creando()">
+    <f-icono nombre="mas" [grosor]="2" />Nuevo usuario
+  </button>
+</header>
+
+@if (claveMostrada(); as c) {
+  <div class="clave tarjeta" role="status">
+    <div>
+      <strong>Contraseña de {{ c.email }}:</strong>
+      <code class="mono">{{ c.clave }}</code>
+      <p class="muted">Entréguela por un canal privado. No se volverá a mostrar.</p>
+    </div>
+    <button type="button" class="btn" (click)="claveMostrada.set(null)">Listo</button>
+  </div>
+}
+
+@if (creando()) {
+  <form class="tarjeta formulario" [formGroup]="nuevo" (ngSubmit)="crear()" novalidate aria-labelledby="u-nuevo">
+    <h2 id="u-nuevo">Nuevo usuario</h2>
+    <div class="rejilla">
+      <div class="field">
+        <label for="u-nombre">Nombre</label>
+        <input id="u-nombre" formControlName="nombre" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="u-email">Correo</label>
+        <input id="u-email" type="email" formControlName="email" autocomplete="off" />
+        @if (nuevo.controls.email.touched && nuevo.controls.email.invalid) { <small class="field__error">Escriba un correo válido.</small> }
+      </div>
+      <div class="field">
+        <label for="u-rol">Rol</label>
+        <select id="u-rol" formControlName="rol">
+          @for (r of roles; track r.valor) { <option [value]="r.valor">{{ r.nombre }}</option> }
+        </select>
+      </div>
+      <div class="field">
+        <label for="u-clave">Contraseña <small>(mínimo {{ min }})</small></label>
+        <div class="con-boton">
+          <input id="u-clave" type="text" class="mono" formControlName="password" autocomplete="new-password" />
+          <button type="button" class="btn" (click)="generarParaNuevo()">Generar</button>
+        </div>
+        @if (nuevo.controls.password.touched && nuevo.controls.password.invalid) { <small class="field__error">Mínimo {{ min }} caracteres.</small> }
+      </div>
+    </div>
+    <div class="formulario__pie">
+      <button type="button" class="btn" (click)="creando.set(false)">Cancelar</button>
+      <button type="submit" class="btn btn--verde">Crear usuario</button>
+    </div>
+  </form>
+}
+
+@if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+<div class="tabla-caja">
+  <table class="tabla tabla--tarjetas">
+    <caption class="sr-only">Usuarios del panel</caption>
+    <thead>
+      <tr>
+        <th scope="col">Usuario</th>
+        <th scope="col">Rol</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Último acceso</th>
+        <th scope="col" class="derecha">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (u of usuarios(); track u.uid) {
+        <tr [class.inactivo]="!u.estado">
+          <td>
+            <div class="nombre">{{ u.nombre }} @if (esYo(u)) { <span class="badge badge--neutro">Usted</span> }</div>
+            <div class="muted correo">{{ u.email }}</div>
+          </td>
+          <td data-etiqueta="Rol">
+            <label class="sr-only" [for]="'rol-' + u.uid">Rol de {{ u.nombre }}</label>
+            <select class="control" [id]="'rol-' + u.uid" #sel (change)="cambiarRol(u, sel)" [disabled]="esUltimoAdmin(u)"
+                    [attr.title]="esUltimoAdmin(u) ? 'Es el último administrador activo' : null">
+              @for (r of roles; track r.valor) { <option [value]="r.valor" [selected]="r.valor === u.rol">{{ r.nombre }}</option> }
+            </select>
+          </td>
+          <td data-etiqueta="Estado">
+            <span class="badge" [class.badge--ok]="u.estado" [class.badge--neutro]="!u.estado">{{ u.estado ? 'Activo' : 'Inactivo' }}</span>
+          </td>
+          <td data-etiqueta="Último acceso" class="muted">{{ u.ultimoAcceso ? (u.ultimoAcceso | slice: 0 : 10) : 'Nunca' }}</td>
+          <td class="derecha">
+            <div class="acciones">
+              <button type="button" class="btn" (click)="abrirRestablecer(u)">Restablecer contraseña</button>
+              <button type="button" class="btn" [class.btn--peligro]="u.estado" (click)="alternarEstado(u)"
+                      [disabled]="u.estado && (esYo(u) || esUltimoAdmin(u))"
+                      [attr.title]="u.estado && esYo(u) ? 'No puede desactivarse a sí mismo' : (u.estado && esUltimoAdmin(u) ? 'Es el último administrador activo' : null)">
+                {{ u.estado ? 'Desactivar' : 'Activar' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="5" class="tabla__vacia">{{ cargando() ? 'Cargando…' : 'No hay usuarios.' }}</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (restableciendo(); as u) {
+  <div class="fondo" (click)="restableciendo.set(null)" aria-hidden="true"></div>
+  <form class="dialogo tarjeta" role="dialog" aria-modal="true" aria-labelledby="r-titulo" (ngSubmit)="restablecer()" novalidate>
+    <h2 id="r-titulo">Restablecer contraseña</h2>
+    <p class="muted">{{ u.nombre }} ({{ u.email }}). Sus sesiones abiertas se cerrarán.</p>
+    <div class="field">
+      <label for="r-clave">Contraseña nueva <small>(mínimo {{ min }})</small></label>
+      <div class="con-boton">
+        <input id="r-clave" type="text" class="mono" [formControl]="clave" autocomplete="new-password" />
+        <button type="button" class="btn" (click)="generarParaRestablecer()">Generar</button>
+      </div>
+      @if (clave.touched && clave.invalid) { <small class="field__error">Mínimo {{ min }} caracteres.</small> }
+    </div>
+    <div class="formulario__pie">
+      <button type="button" class="btn" (click)="restableciendo.set(null)">Cancelar</button>
+      <button type="submit" class="btn btn--verde">Restablecer</button>
+    </div>
+  </form>
+}

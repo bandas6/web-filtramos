@@ -1,0 +1,116 @@
+<header class="encabezado">
+  <div>
+    <h1>{{ esKits() ? 'Kits' : 'Productos' }}</h1>
+    <p class="encabezado__nota">Lo que se publique aquí aparece en la web y en el catálogo PDF.</p>
+  </div>
+  <div class="encabezado__acciones">
+    <button type="button" class="btn" (click)="exportarPdf()" [disabled]="exportando()">
+      <f-icono nombre="descargar" />{{ exportando() ? 'Generando…' : 'Exportar catálogo PDF' }}
+    </button>
+    @if (auth.esAdmin()) {
+      <button type="button" class="btn btn--verde" (click)="nuevo()">
+        <f-icono nombre="mas" [grosor]="2" />{{ esKits() ? 'Nuevo kit' : 'Nuevo producto' }}
+      </button>
+    }
+  </div>
+</header>
+
+<section class="indicadores" aria-label="Calidad del catálogo">
+  <f-indicador titulo="Publicados" [valor]="resumen()?.publicados" />
+  <f-indicador titulo="Sin foto real" [valor]="resumen()?.sinFoto" [alerta]="true" />
+  <f-indicador titulo="Sin precio" [valor]="resumen()?.sinPrecio" [alerta]="true" />
+  <f-indicador titulo="Stock bajo" [valor]="resumen()?.stockBajo" />
+</section>
+
+<div class="filtros">
+  <label for="p-q" class="sr-only">Buscar productos</label>
+  <input id="p-q" type="search" class="control filtros__buscar" placeholder="Buscar por referencia, equivalencia o aplicación"
+         [value]="q()" (input)="buscar($any($event.target).value)" />
+  <label for="p-tipo" class="sr-only">Tipo</label>
+  <select id="p-tipo" class="control" [value]="tipo()" (change)="filtrarTipo($any($event.target).value)">
+    <option value="">Todos los tipos</option>
+    @for (t of tipos; track t.valor) { <option [value]="t.valor" [selected]="t.valor === tipo()">{{ t.nombre }}</option> }
+  </select>
+  <label for="p-estado" class="sr-only">Estado</label>
+  <select id="p-estado" class="control" (change)="filtrarEstado($any($event.target).value)">
+    <option value="" [selected]="!estado()">Todos los estados</option>
+    <option value="publicado" [selected]="estado() === 'publicado'">Publicado</option>
+    <option value="borrador" [selected]="estado() === 'borrador'">Borrador</option>
+  </select>
+</div>
+
+@if (error()) {
+  <div class="alerta" role="alert">{{ error() }} <button type="button" class="btn--enlace btn" (click)="cargar()">Reintentar</button></div>
+}
+
+<div class="tabla-caja" [attr.aria-busy]="cargando()">
+  <table class="tabla tabla--tarjetas">
+    <caption class="sr-only">Productos del catálogo</caption>
+    <thead>
+      <tr>
+        <th scope="col">Producto</th>
+        <th scope="col">Equivalencias</th>
+        <th scope="col">Precio público</th>
+        <th scope="col">Stock</th>
+        <th scope="col">Estado</th>
+        <th scope="col" class="derecha">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of datos()?.productos; track p.uid) {
+        <tr>
+          <td>
+            <div class="producto">
+              @if (p.imagesUrl[0]) {
+                <img class="producto__foto" [src]="publicUrl + p.imagesUrl[0]" alt="" loading="lazy" />
+              } @else {
+                <div class="producto__foto" aria-hidden="true"></div>
+              }
+              <div>
+                <div class="producto__ref mono">{{ p.referencia }}</div>
+                <div class="producto__tipo">{{ nombreTipo[p.tipo || ''] || 'Sin tipo' }}</div>
+              </div>
+            </div>
+          </td>
+          <td data-etiqueta="Equivalencias" class="texto-2 ancho">{{ equivalencias(p) }}</td>
+          <td data-etiqueta="Precio público" class="precio">{{ pesos(p.precios?.publico) }}</td>
+          <td data-etiqueta="Stock" class="mono">{{ p.tipo === 'kit' ? '—' : p.stock }}</td>
+          <td data-etiqueta="Estado"><f-badge-estado [publicado]="p.publicado" [motivos]="p.motivosBorrador" /></td>
+          <td class="derecha">
+            <div class="acciones">
+              <button type="button" class="btn-icono" (click)="editar(p)"
+                      [attr.aria-label]="(auth.esAdmin() ? 'Editar ' : 'Ver ') + p.referencia">
+                <f-icono nombre="editar" />
+              </button>
+              @if (auth.esAdmin()) {
+                <button type="button" class="btn-icono btn-icono--peligro" (click)="eliminar(p)" [attr.aria-label]="'Eliminar ' + p.referencia">
+                  <f-icono nombre="eliminar" />
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="6" class="tabla__vacia">
+          {{ cargando() ? 'Cargando…' : (q() || tipo() || estado() ? 'Ningún producto coincide con los filtros.' : 'Todavía no hay productos.') }}
+        </td></tr>
+      }
+    </tbody>
+  </table>
+  <div class="tabla__pie">
+    <span>{{ rango() }}</span>
+    @if ((datos()?.paginas || 1) > 1) {
+      <nav class="paginas" aria-label="Páginas">
+        @for (n of numerosPagina(); track n) {
+          <button type="button" (click)="irAPagina(n)" [attr.aria-current]="n === datos()?.pagina ? 'page' : null"
+                  [attr.aria-label]="'Página ' + n">{{ n }}</button>
+        }
+      </nav>
+    }
+  </div>
+</div>
+
+@if (enEdicion() !== undefined) {
+  <app-producto-form [producto]="enEdicion() ?? null" [tipoInicial]="esKits() ? 'kit' : ''" [soloLectura]="!auth.esAdmin()"
+                     (guardado)="alGuardar($event)" (cerrar)="enEdicion.set(undefined)" />
+}

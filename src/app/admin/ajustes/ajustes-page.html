@@ -1,0 +1,36 @@
+<header>
+  <h1>Ajustes</h1>
+  <p class="nota">Datos del negocio que se muestran en el sitio. Si un dato está vacío, el sitio oculta esa línea.</p>
+</header>
+
+@if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+@if (!cargando()) {
+  <form class="tarjeta formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    @for (c of campos(); track c.clave) {
+      <div class="field">
+        <label [for]="'aj-' + c.clave">
+          {{ c.etiqueta }}
+          @if (c.obligatorio) { <small>(obligatorio)</small> }
+          @if (!c.publico) { <span class="badge badge--neutro">Privado</span> }
+        </label>
+        @if (c.multilinea) {
+          <textarea [id]="'aj-' + c.clave" [formControlName]="c.clave" rows="4" [attr.aria-describedby]="c.ayuda ? 'aj-ayuda-' + c.clave : null"></textarea>
+        } @else {
+          <input [id]="'aj-' + c.clave" [formControlName]="c.clave"
+                 [type]="c.tipo === 'email' ? 'email' : (c.tipo === 'whatsapp' ? 'tel' : 'text')"
+                 [attr.inputmode]="c.tipo === 'whatsapp' ? 'numeric' : null"
+                 [attr.aria-invalid]="c.obligatorio && faltantes().includes(c.clave)"
+                 [attr.aria-describedby]="c.ayuda ? 'aj-ayuda-' + c.clave : null" />
+        }
+        @if (c.ayuda) { <small class="field__hint" [id]="'aj-ayuda-' + c.clave">{{ c.ayuda }}</small> }
+        @if (c.obligatorio && faltantes().includes(c.clave)) { <small class="field__error">Falta este dato.</small> }
+      </div>
+    }
+    <div class="pie">
+      <button type="submit" class="btn btn--verde" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar ajustes' }}</button>
+    </div>
+  </form>
+} @else {
+  <p class="muted">Cargando…</p>
+}

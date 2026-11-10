@@ -1,0 +1,32 @@
+:host { display: contents; }
+
+.encabezado { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+.encabezado h1 { font-size: 32px; }
+.encabezado__nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+
+.formulario, .dialogo { padding: 20px; display: flex; flex-direction: column; gap: 16px; h2 { font-size: 20px; } }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.formulario__pie { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.con-boton { display: flex; gap: 8px; input { flex: 1; } }
+
+.clave {
+  padding: 16px 20px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  border-color: var(--f-green); background: var(--f-green-tint);
+  code { font-size: 16px; background: #fff; padding: 4px 8px; border-radius: 6px; margin-left: 6px; word-break: break-all; }
+  p { margin: 6px 0 0; font-size: 14px; }
+}
+
+.nombre { font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.correo { font-size: 13px; }
+.inactivo .nombre, .inactivo .correo { opacity: .6; }
+.acciones { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+.fondo { position: fixed; inset: 0; background: rgba(20, 20, 20, .45); z-index: 40; }
+.dialogo {
+  position: fixed; z-index: 41; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(480px, calc(100vw - 32px)); p { margin: 0; }
+}
+
+@media (max-width: 760px) {
+  .acciones { justify-content: flex-start; .btn { flex: 1 1 auto; } }
+}

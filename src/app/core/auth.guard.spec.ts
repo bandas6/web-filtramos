@@ -21,7 +21,7 @@ const url = (r: boolean | UrlTree) => (r instanceof UrlTree ? TestBed.inject(Rou
 
 describe('Guards', () => {
   it('authGuard: sin sesión va a /login', async () => {
-    expect(url(await ejecutar(authGuard, false, false))).toBe('/login');
+    expect(url(await ejecutar(authGuard, false, false))).toBe('/admin/login');
   });
 
   it('authGuard: con sesión deja pasar', async () => {
@@ -29,7 +29,7 @@ describe('Guards', () => {
   });
 
   it('adminGuard: bodega o ventas vuelven al catálogo', async () => {
-    expect(url(await ejecutar(adminGuard, true, false))).toBe('/pages/catalogo-admin');
+    expect(url(await ejecutar(adminGuard, true, false))).toBe('/admin/productos');
   });
 
   it('adminGuard: admin entra', async () => {

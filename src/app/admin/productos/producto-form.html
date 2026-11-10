@@ -1,0 +1,237 @@
+<div class="fondo" (click)="cerrar.emit()" aria-hidden="true"></div>
+
+<section class="hoja" role="dialog" aria-modal="true" aria-labelledby="pf-titulo">
+  <header class="hoja__cabecera">
+    <h2 id="pf-titulo">{{ titulo() }}</h2>
+    <button type="button" class="btn-icono" aria-label="Cerrar" (click)="cerrar.emit()"><f-icono nombre="cerrar" /></button>
+  </header>
+
+  <form class="hoja__cuerpo" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <!-- Estado de publicación en vivo -->
+    <div class="estado">
+      <f-badge-estado [publicado]="!motivos().length" [motivos]="motivos()" />
+      <span class="muted">
+        @if (motivos().length) { Para publicarlo falta: {{ textoMotivos(motivos()) }}. }
+        @else { Cumple los requisitos: se publicará al guardar. }
+      </span>
+    </div>
+
+    <fieldset>
+      <legend>Datos básicos</legend>
+      <div class="rejilla">
+        <div class="field">
+          <label for="pf-ref">Referencia</label>
+          <input #primerCampo id="pf-ref" class="mono" formControlName="referencia" autocomplete="off"
+                 [attr.aria-invalid]="invalido('referencia')" aria-describedby="pf-ref-ayuda" />
+          @if (invalido('referencia')) { <small class="field__error" id="pf-ref-ayuda">Escriba la referencia.</small> }
+        </div>
+        <div class="field">
+          <label for="pf-tipo">Tipo</label>
+          <select id="pf-tipo" formControlName="tipo">
+            <option value="">— Sin tipo —</option>
+            @for (t of tipos; track t.valor) { <option [value]="t.valor">{{ t.nombre }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pf-desc">Descripción <small>(opcional)</small></label>
+        <textarea id="pf-desc" formControlName="descripcion" rows="3"></textarea>
+      </div>
+      <div class="rejilla">
+        <div class="field">
+          <label for="pf-siigo">Código en Siigo <small>(opcional)</small></label>
+          <input id="pf-siigo" class="mono" formControlName="codigoSiigo" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="pf-intervalo">Intervalo de cambio <small>(ej.: 500 horas)</small></label>
+          <input id="pf-intervalo" formControlName="intervaloCambio" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Precios</legend>
+      <div class="rejilla">
+        <div class="field">
+          <label for="pf-precio">Precio público</label>
+          <input id="pf-precio" type="number" min="0" step="1" inputmode="numeric" formControlName="precioPublico" />
+        </div>
+        <div class="field">
+          <label for="pf-dist">Precio distribuidor <small>(privado, no sale en la web)</small></label>
+          <input id="pf-dist" type="number" min="0" step="1" inputmode="numeric" formControlName="precioDistribuidor" />
+        </div>
+      </div>
+      <div class="lista" formArrayName="volumen">
+        <div class="lista__titulo">Precio por volumen</div>
+        @for (t of volumen.controls; track t; let i = $index) {
+          <div class="fila" [formGroupName]="i">
+            <div class="field">
+              <label [for]="'pf-desde-' + i">Desde (unidades)</label>
+              <input [id]="'pf-desde-' + i" type="number" min="2" step="1" inputmode="numeric" formControlName="desde" />
+            </div>
+            <div class="field">
+              <label [for]="'pf-tprecio-' + i">Precio unitario</label>
+              <input [id]="'pf-tprecio-' + i" type="number" min="0" step="1" inputmode="numeric" formControlName="precio" />
+            </div>
+            @if (!soloLectura()) {
+              <button type="button" class="btn-icono btn-icono--peligro" (click)="quitar(volumen, i)" [attr.aria-label]="'Quitar tramo ' + (i + 1)">
+                <f-icono nombre="eliminar" />
+              </button>
+            }
+          </div>
+        }
+        @if (!soloLectura()) {
+          <button type="button" class="btn" (click)="agregarTramo()"><f-icono nombre="mas" />Agregar tramo</button>
+        }
+      </div>
+    </fieldset>
+
+    @if (esKit()) {
+      <fieldset>
+        <legend>Componentes del kit</legend>
+        <div class="lista" formArrayName="kit">
+          @for (c of kit.controls; track c; let i = $index) {
+            <div class="fila" [formGroupName]="i">
+              <div class="field">
+                <label [for]="'pf-comp-' + i">Producto</label>
+                <select [id]="'pf-comp-' + i" formControlName="producto">
+                  <option value="">— Elija —</option>
+                  @for (o of opcionesKit(); track o.uid) { <option [value]="o.uid">{{ o.referencia }}</option> }
+                </select>
+              </div>
+              <div class="field field--corto">
+                <label [for]="'pf-cant-' + i">Cantidad</label>
+                <input [id]="'pf-cant-' + i" type="number" min="1" step="1" inputmode="numeric" formControlName="cantidad" />
+              </div>
+              @if (!soloLectura()) {
+                <button type="button" class="btn-icono btn-icono--peligro" (click)="quitar(kit, i)" [attr.aria-label]="'Quitar componente ' + (i + 1)">
+                  <f-icono nombre="eliminar" />
+                </button>
+              }
+            </div>
+          }
+          @if (!soloLectura()) {
+            <button type="button" class="btn" (click)="agregarComponente()"><f-icono nombre="mas" />Agregar componente</button>
+          }
+        </div>
+      </fieldset>
+    } @else {
+      <fieldset>
+        <legend>Equivalencias</legend>
+        <p class="muted nota">Referencias de otras marcas a las que reemplaza. Se pueden buscar en la web.</p>
+        <div class="lista" formArrayName="equivalencias">
+          @for (e of equivalencias.controls; track e; let i = $index) {
+            <div class="fila" [formGroupName]="i">
+              <div class="field">
+                <label [for]="'pf-marca-' + i">Marca</label>
+                <input [id]="'pf-marca-' + i" formControlName="marca" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label [for]="'pf-eqref-' + i">Referencia</label>
+                <input [id]="'pf-eqref-' + i" class="mono" formControlName="referencia" autocomplete="off" />
+              </div>
+              @if (!soloLectura()) {
+                <button type="button" class="btn-icono btn-icono--peligro" (click)="quitar(equivalencias, i)" [attr.aria-label]="'Quitar equivalencia ' + (i + 1)">
+                  <f-icono nombre="eliminar" />
+                </button>
+              }
+            </div>
+          }
+          @if (!soloLectura()) {
+            <button type="button" class="btn" (click)="agregarEquivalencia()"><f-icono nombre="mas" />Agregar equivalencia</button>
+          }
+        </div>
+      </fieldset>
+    }
+
+    <fieldset>
+      <legend>Fotos</legend>
+      <p class="muted nota">La primera es la principal. Se eligen de la biblioteca de
+        @if (soloLectura()) { imágenes. } @else { <a routerLink="/admin/imagenes">Imágenes</a>. }
+      </p>
+      @if (fotos().length) {
+        <ol class="fotos">
+          @for (u of fotos(); track u; let i = $index, ultima = $last) {
+            <li class="foto">
+              <img [src]="publicUrl + u" [alt]="'Foto ' + (i + 1)" />
+              @if (!soloLectura()) {
+                <div class="foto__acciones">
+                  <button type="button" class="btn-icono" (click)="moverFoto(i, -1)" [disabled]="i === 0" [attr.aria-label]="'Subir foto ' + (i + 1)"><f-icono nombre="arriba" /></button>
+                  <button type="button" class="btn-icono" (click)="moverFoto(i, 1)" [disabled]="ultima" [attr.aria-label]="'Bajar foto ' + (i + 1)"><f-icono nombre="abajo" /></button>
+                  <button type="button" class="btn-icono btn-icono--peligro" (click)="quitarFoto(u)" [attr.aria-label]="'Quitar foto ' + (i + 1)"><f-icono nombre="eliminar" /></button>
+                </div>
+              }
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="sin-fotos">Sin fotos.</p>
+      }
+      @if (!soloLectura()) {
+        <button type="button" class="btn" (click)="eligiendoFotos.set(!eligiendoFotos())" [attr.aria-expanded]="eligiendoFotos()">
+          <f-icono nombre="imagenes" />Agregar desde la biblioteca
+        </button>
+        @if (eligiendoFotos()) {
+          @if (fotosDisponibles().length) {
+            <ul class="biblioteca">
+              @for (img of fotosDisponibles(); track img.uid) {
+                <li><button type="button" class="biblioteca__item" (click)="agregarFoto(img.imagen)">
+                  <img [src]="publicUrl + img.imagen" alt="" /><span>{{ img.nombre }}</span>
+                </button></li>
+              }
+            </ul>
+          } @else {
+            <p class="muted">No hay más imágenes en la biblioteca. Súbalas en <a routerLink="/admin/imagenes">Imágenes</a>.</p>
+          }
+        }
+      }
+    </fieldset>
+
+    <fieldset>
+      <legend>Ficha técnica</legend>
+      <div class="rejilla rejilla--3">
+        @for (c of fichaNumerica; track c.clave) {
+          <div class="field">
+            <label [for]="'pf-' + c.clave">{{ c.etiqueta }}</label>
+            <input [id]="'pf-' + c.clave" type="number" min="0" step="any" inputmode="decimal" class="mono" [formControlName]="c.clave" />
+          </div>
+        }
+        @for (c of fichaTexto; track c.clave) {
+          <div class="field">
+            <label [for]="'pf-' + c.clave">{{ c.etiqueta }}</label>
+            <input [id]="'pf-' + c.clave" [formControlName]="c.clave" />
+          </div>
+        }
+      </div>
+      <div class="field">
+        <label for="pf-papeles">Papeles <small>(separados por coma)</small></label>
+        <input id="pf-papeles" formControlName="papeles" />
+      </div>
+      <div class="field">
+        <label for="pf-apl">Aplicaciones <small>(una por línea: marca, modelo, motor)</small></label>
+        <textarea id="pf-apl" formControlName="aplicaciones" rows="4"></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Publicación e inventario</legend>
+      <label class="check">
+        <input type="checkbox" formControlName="publicar" />
+        <span>Publicar en la web y en el catálogo PDF cuando esté completo</span>
+      </label>
+      <div class="field field--corto">
+        <label for="pf-min">Stock mínimo</label>
+        <input id="pf-min" type="number" min="0" step="1" inputmode="numeric" class="mono" formControlName="stockMinimo" />
+      </div>
+    </fieldset>
+
+    @if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+    <footer class="hoja__pie">
+      <button type="button" class="btn" (click)="cerrar.emit()">{{ soloLectura() ? 'Cerrar' : 'Cancelar' }}</button>
+      @if (!soloLectura()) {
+        <button type="submit" class="btn btn--verde" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+      }
+    </footer>
+  </form>
+</section>

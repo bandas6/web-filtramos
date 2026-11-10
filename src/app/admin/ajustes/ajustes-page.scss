@@ -1,0 +1,7 @@
+:host { display: contents; }
+h1 { font-size: 32px; }
+.nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+.formulario { padding: 24px; display: flex; flex-direction: column; gap: 18px; max-width: 760px; }
+label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pie { display: flex; justify-content: flex-end; }
+@media (max-width: 760px) { .formulario { padding: 16px; } .pie .btn { width: 100%; } }

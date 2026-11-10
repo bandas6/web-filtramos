@@ -7,7 +7,7 @@ import { Auth } from '../services/auth/auth';
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   return inject(Auth).verificarSesion().pipe(
-    map((ok) => (ok ? true : router.createUrlTree(['/login'])))
+    map((ok) => (ok ? true : router.createUrlTree(['/admin/login'])))
   );
 };
 
@@ -17,8 +17,8 @@ export const adminGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   return auth.verificarSesion().pipe(
     map((ok) => {
-      if (!ok) return router.createUrlTree(['/login']);
-      return auth.esAdmin() ? true : router.createUrlTree(['/pages/catalogo-admin']);
+      if (!ok) return router.createUrlTree(['/admin/login']);
+      return auth.esAdmin() ? true : router.createUrlTree(['/admin/productos']);
     })
   );
 };

@@ -34,7 +34,7 @@ export class Login {
 
     const { email, password } = this.form.getRawValue();
     this.auth.login(email, password).subscribe({
-      next: () => this.router.navigateByUrl('/pages'),
+      next: () => this.router.navigateByUrl('/admin'),
       error: (err: HttpErrorResponse) => {
         this.cargando.set(false);
         this.error.set(
