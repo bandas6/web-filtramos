@@ -104,8 +104,7 @@ export function motivosDeBorrador(p: Partial<Producto>): string[] {
   return motivos;
 }
 
-const formatoPesos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-export const pesos = (n: number | null | undefined) => (n || n === 0 ? formatoPesos.format(n) : '—');
+export { pesos } from '../shared/formato';
 
 // ---- Inventario (etapa C)
 export type EstadoDisponibilidad = 'disponible' | 'ultimas' | 'bajo-pedido';
@@ -184,3 +183,27 @@ export function descargar(blob: Blob, nombre: string) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// ---- Cotizaciones y pedidos (etapa F)
+export interface LineaPedidoAdmin { referencia: string; cantidad: number; precioUnitario?: number | null; subtotal?: number | null; tipo?: string; }
+export interface PedidoAdmin {
+  uid: string; numero: number; lineas: LineaPedidoAdmin[]; totalEstimado?: number | null;
+  nombre: string; whatsapp: string; empresa?: string; ciudad: string; nota?: string;
+  estado: 'nuevo' | 'confirmado' | 'despachado' | 'cancelado';
+  historial: { estado: string; fecha: string; usuarioNombre?: string }[];
+  createdAt: string;
+}
+export interface SolicitudMedidaAdmin {
+  uid: string; nombre: string; whatsapp: string; empresa?: string; medidas: string; cantidad: number; foto?: string;
+  estado: 'nuevo' | 'cotizado' | 'cerrado'; notaInterna?: string; createdAt: string;
+}
+export interface RecordatorioAdmin {
+  uid: string; whatsapp: string; referencia?: string; maquina?: string; intervalo?: string; proximaFecha?: string;
+  estado: 'activo' | 'inactivo'; createdAt: string;
+}
+export const SIGUIENTES_ESTADOS: Record<string, { estado: PedidoAdmin['estado']; texto: string }[]> = {
+  nuevo: [{ estado: 'confirmado', texto: 'Confirmar (reserva stock)' }, { estado: 'cancelado', texto: 'Cancelar' }],
+  confirmado: [{ estado: 'despachado', texto: 'Marcar despachado' }, { estado: 'cancelado', texto: 'Cancelar (libera stock)' }],
+  despachado: [],
+  cancelado: []
+};

@@ -1,0 +1,68 @@
+// Medidas de diseno/html/Main.html
+:host { display: block; background: var(--f-ground); min-height: 100vh; }
+
+.saltar {
+  position: absolute; left: 8px; top: -60px; z-index: 60; background: #fff; padding: 10px 14px; border-radius: 8px;
+  &:focus { top: 8px; }
+}
+
+.barra { background: var(--f-ink); color: #e8ebe6; font-size: 13px; }
+.barra__fila { padding-top: 10px; padding-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px 28px; justify-content: space-between; }
+.barra__wa { color: var(--f-green-light); font-weight: 700; text-decoration: none; &:hover { color: #fff; } }
+
+.cabecera { background: #fff; border-bottom: 1px solid var(--f-line); position: relative; z-index: 30; }
+.cabecera__fila { padding-top: 14px; padding-bottom: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; }
+.cabecera__logo img { height: 52px; width: auto; display: block; }
+.cabecera__nav {
+  display: flex; flex-wrap: wrap; gap: 4px 28px; flex: 1 1 420px; font-size: 15px; font-weight: 500;
+  a { color: var(--f-ink); text-decoration: none; padding: 12px 0; &:hover { color: var(--f-green); } }
+}
+.cabecera__acciones { display: flex; gap: 10px; align-items: center; }
+.cabecera__carrito { position: relative; text-decoration: none; }
+.cabecera__cuenta {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+  background: var(--f-green); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.cabecera__menu { display: none; }
+
+main { outline: none; }
+
+.pie { background: #fff; border-top: 1px solid var(--f-line); margin-top: 0; }
+.pie__rejilla { padding-top: 48px; padding-bottom: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; font-size: 14px;
+  h2 { font-family: var(--f-font-body); font-size: 14px; font-weight: 700; margin: 0 0 10px; }
+  nav, div { display: flex; flex-direction: column; gap: 4px; }
+  a { color: var(--f-text-2); text-decoration: none; padding: 6px 0; &:hover { color: var(--f-green); text-decoration: underline; } }
+  span { color: var(--f-text-2); padding: 6px 0; }
+  img { height: 44px; width: auto; align-self: flex-start; }
+}
+.pie__texto { margin: 8px 0 0; color: var(--f-muted); max-width: 240px; }
+.pie__legal {
+  border-top: 1px solid var(--f-line); padding-top: 16px; padding-bottom: 24px;
+  display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; font-size: 13px; color: var(--f-muted);
+  a { color: var(--f-muted); }
+}
+
+.flotante { display: none; }
+
+@media (max-width: 900px) {
+  .barra { display: none; }
+  .cabecera__fila { padding-top: 10px; padding-bottom: 10px; gap: 10px; }
+  .cabecera__logo img { height: 40px; }
+  .cabecera__acciones { margin-left: auto; }
+  .cabecera__wa { display: none; }
+  .cabecera__menu {
+    display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center;
+    background: var(--f-ink); color: #fff; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .cabecera__nav {
+    display: none; order: 3; flex: 1 1 100%; flex-direction: column; gap: 0; border-top: 1px solid var(--f-line);
+    a { padding: 14px 0; border-bottom: 1px solid var(--f-line-soft); font-size: 16px; }
+    &.abierta { display: flex; }
+  }
+  .flotante {
+    display: flex; position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 40; height: 56px; border-radius: 12px;
+    align-items: center; justify-content: center; gap: 10px; background: var(--f-green); color: #fff; text-decoration: none;
+    font-weight: 700; font-size: 17px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  }
+  .pie { padding-bottom: 88px; }
+}

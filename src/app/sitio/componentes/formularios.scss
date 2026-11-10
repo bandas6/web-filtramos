@@ -1,0 +1,42 @@
+// Formularios del sitio (Main.png: cotización a medida y recordatorio)
+.form { display: flex; flex-direction: column; gap: 14px; h3 { font-size: 22px; } }
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.foto-fila { display: flex; gap: 12px; align-items: flex-end; }
+.foto {
+  flex: 1; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 14px; cursor: pointer;
+  border: 1px dashed var(--f-control); border-radius: 8px; background: #fff; font-size: 14px; color: var(--f-text-2);
+  span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &:focus-within { outline: 2px solid var(--f-green); }
+}
+.cantidad { width: 110px; flex: none; }
+.consentimiento { font-size: 13px; line-height: 1.45; color: var(--f-text-2); }
+.nota { margin: 0; font-size: 12px; color: var(--f-muted); }
+.trampa { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+.exito {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; color: var(--f-green-dark);
+  h3 { font-size: 22px; color: var(--f-ink); } p { margin: 0; color: var(--f-text-2); }
+}
+
+// Franja oscura
+.recordatorio { display: flex; flex-direction: column; gap: 10px; }
+.recordatorio__fila { display: flex; flex-wrap: wrap; gap: 10px; }
+.recordatorio__input {
+  flex: 1 1 220px; min-width: 0; height: 52px; padding: 0 16px; border: 1px solid #3a3f3a; border-radius: 8px;
+  background: #1f231f; color: #fff; font: 16px var(--f-font-body);
+  &::placeholder { color: #9aa198; }
+  &:focus { outline: 2px solid var(--f-green-light); outline-offset: 1px; }
+}
+.recordatorio__btn {
+  height: 52px; padding: 0 22px; border: none; border-radius: 8px; background: var(--f-green-light); color: #0f2a12;
+  font: 700 16px var(--f-font-body); cursor: pointer; flex: 1 1 auto;
+  &:hover:not(:disabled) { background: #a9e0ad; }
+}
+.recordatorio > .recordatorio__input { flex: none; }
+.recordatorio__check { font-size: 13px; color: #c9cec7; min-height: 0; a { color: var(--f-green-light); } }
+.recordatorio__error { color: #f3b48c; font-size: 13px; }
+.ok-oscuro { margin: 0; color: var(--f-green-light); font-weight: 600; }
+
+@media (max-width: 760px) {
+  .dos { grid-template-columns: minmax(0, 1fr); }
+}

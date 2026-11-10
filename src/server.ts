@@ -6,23 +6,40 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { environment } from './environments/environment';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+// Detrás del proxy del hosting: protocolo y dominio reales para las URL absolutas
+app.set('trust proxy', 1);
+
+const origen = (req: express.Request) => `${req.protocol}://${req.get('host')}`;
+const escaparXml = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c]!);
+
+// sitemap.xml con todas las fichas publicadas (los datos vienen de la API)
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const r = await fetch(`${environment.apiUrl}/public/sitemap`);
+    const { productos = [] } = (await r.json()) as { productos?: { slug: string; actualizado?: string }[] };
+    const base = origen(req);
+    const urls = [
+      `<url><loc>${base}/</loc></url>`,
+      `<url><loc>${base}/catalogo</loc></url>`,
+      ...productos.map((p) => `<url><loc>${escaparXml(`${base}/filtro/${p.slug}`)}</loc>${p.actualizado ? `<lastmod>${p.actualizado.slice(0, 10)}</lastmod>` : ''}</url>`)
+    ];
+    res.type('application/xml').set('Cache-Control', 'public, max-age=3600')
+      .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`);
+  } catch {
+    res.status(503).type('text/plain').send('Sitemap no disponible');
+  }
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(`User-agent: *\nDisallow: /admin\nDisallow: /pedido\nSitemap: ${origen(req)}/sitemap.xml\n`);
+});
 
 /**
  * Serve static files from /browser

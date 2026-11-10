@@ -31,7 +31,17 @@ async function prepararImportacion(p) {
 
 // nombre, ruta, requiere sesión, acción opcional antes de capturar
 const PANTALLAS = [
+  // Sitio público
+  ['inicio', '/', false],
+  ['catalogo', '/catalogo', false],
+  ['producto', '/filtro/demo-ap-001', false],
+  ['producto-kit', '/filtro/demo-kit-001', false],
+  ['pedido', '/filtro/demo-as-001', false, async (p) => { await p.getByRole('button', { name: /Agregar al pedido/ }).first().click(); await p.goto(`${BASE}/pedido`); await p.waitForLoadState('networkidle'); }],
+  ['no-encontrado', '/filtro/no-existe', false],
+  ['legal', '/legal', false],
+  // Panel
   ['login', '/admin/login', false],
+  ['cotizaciones', '/admin/cotizaciones', true],
   ['productos', '/admin/productos', true],
   ['producto-nuevo', '/admin/productos', true, async (p) => { await p.getByRole('button', { name: 'Nuevo producto' }).click(); await p.waitForTimeout(400); }],
   ['producto-editar', '/admin/productos', true, async (p) => { await p.getByRole('button', { name: 'Editar DEMO-AP-001' }).click(); await p.waitForTimeout(600); }],

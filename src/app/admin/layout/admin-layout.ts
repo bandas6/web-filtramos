@@ -15,6 +15,7 @@ const OPCIONES: Opcion[] = [
   { texto: 'Inventario', ruta: '/admin/inventario', icono: 'inventario' },
   { texto: 'Importar Excel', ruta: '/admin/importar', icono: 'importar', roles: ['admin'] },
   { texto: 'Kits', ruta: '/admin/productos', icono: 'kits', query: { tipo: 'kit' } },
+  { texto: 'Cotizaciones y pedidos', ruta: '/admin/cotizaciones', icono: 'cotizaciones' },
   { texto: 'Imágenes', ruta: '/admin/imagenes', icono: 'imagenes', roles: ['admin'] },
   { texto: 'Usuarios y roles', ruta: '/admin/usuarios', icono: 'usuarios', roles: ['admin'] },
   { texto: 'Ajustes', ruta: '/admin/ajustes', icono: 'ajustes', roles: ['admin'] }

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AnalisisImportacion, CampoAjuste, FilaInventario, ResultadoImportacion, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
+import { PedidoAdmin, RecordatorioAdmin, SolicitudMedidaAdmin, AnalisisImportacion, CampoAjuste, FilaInventario, ResultadoImportacion, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
 
 // Acceso a /api/admin. El interceptor agrega el token.
 @Injectable({ providedIn: 'root' })
@@ -49,6 +49,29 @@ export class AdminApi {
   }
   registrarMovimiento(datos: { referencia: string; tipo: string; motivo: string; cantidad?: number | null; stockContado?: number | null; nota?: string }): Observable<Movimiento> {
     return this.http.post<any>(`${this.url}/movimientos`, datos).pipe(map((r) => r.movimiento));
+  }
+
+  // Cotizaciones y pedidos
+  pedidos(estado = '', pagina = 1): Observable<{ pedidos: PedidoAdmin[]; total: number; pagina: number; paginas: number }> {
+    return this.http.get<any>(`${this.url}/pedidos`, { params: new HttpParams({ fromObject: { ...(estado ? { estado } : {}), pagina } }) });
+  }
+  cambiarEstadoPedido(id: string, estado: string): Observable<PedidoAdmin> {
+    return this.http.put<any>(`${this.url}/pedidos/${id}/estado`, { estado }).pipe(map((r) => r.pedido));
+  }
+  solicitudesMedida(estado = '', pagina = 1): Observable<{ solicitudes: SolicitudMedidaAdmin[]; total: number; pagina: number; paginas: number }> {
+    return this.http.get<any>(`${this.url}/solicitudes-medida`, { params: new HttpParams({ fromObject: { ...(estado ? { estado } : {}), pagina } }) });
+  }
+  actualizarSolicitudMedida(id: string, datos: Partial<SolicitudMedidaAdmin>): Observable<SolicitudMedidaAdmin> {
+    return this.http.put<any>(`${this.url}/solicitudes-medida/${id}`, datos).pipe(map((r) => r.solicitud));
+  }
+  recordatorios(estado = '', pagina = 1): Observable<{ recordatorios: RecordatorioAdmin[]; total: number; pagina: number; paginas: number }> {
+    return this.http.get<any>(`${this.url}/recordatorios`, { params: new HttpParams({ fromObject: { ...(estado ? { estado } : {}), pagina } }) });
+  }
+  actualizarRecordatorio(id: string, datos: { estado?: string; proximaFecha?: string | null }): Observable<RecordatorioAdmin> {
+    return this.http.put<any>(`${this.url}/recordatorios/${id}`, datos).pipe(map((r) => r.recordatorio));
+  }
+  pendientes(): Observable<{ pedidos: number; medida: number }> {
+    return this.http.get<any>(`${this.url}/solicitudes/pendientes`);
   }
 
   // Importación y exportación Excel

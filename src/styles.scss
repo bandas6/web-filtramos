@@ -26,6 +26,12 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Ancho máximo del sitio público: 1240 px con márgenes de 24 px (16 px en móvil) */
+.contenedor { max-width: 1240px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+@media (max-width: 760px) { .contenedor { padding-left: 16px; padding-right: 16px; } }
+
+.kicker { font-family: var(--f-font-mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--f-green); }
+
 body {
   margin: 0;
   font-family: var(--f-font-body);

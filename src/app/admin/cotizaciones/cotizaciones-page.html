@@ -1,0 +1,140 @@
+<header>
+  <h1>Cotizaciones y pedidos</h1>
+  <p class="nota">Lo que llega del sitio. Confirmar un pedido reserva el stock; despacharlo lo descuenta.</p>
+</header>
+
+<div class="barra">
+  <div class="pestanas" role="tablist" aria-label="Tipo de solicitud">
+    @for (p of pestanas; track p.valor) {
+      <button type="button" role="tab" class="pestana" [attr.aria-selected]="pestana() === p.valor" (click)="ir(p.valor)">{{ p.texto }}</button>
+    }
+  </div>
+  <label for="c-estado" class="sr-only">Estado</label>
+  <select id="c-estado" class="control" (change)="filtrar($any($event.target).value)">
+    <option value="" [selected]="!estado()">Todos los estados</option>
+    @for (e of opcionesEstado(); track e) { <option [value]="e" [selected]="e === estado()">{{ nombreEstado[e] }}</option> }
+  </select>
+</div>
+
+@if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+<div role="tabpanel" [attr.aria-busy]="cargando()">
+  @switch (pestana()) {
+    @case ('pedidos') {
+      <ul class="lista">
+        @for (p of pedidos(); track p.uid) {
+          <li class="tarjeta item">
+            <div class="item__cab">
+              <div>
+                <span class="mono item__num">#{{ p.numero }}</span>
+                <span class="badge" [class]="'badge estado-' + p.estado">{{ nombreEstado[p.estado] }}</span>
+                <span class="muted fecha">{{ fecha(p.createdAt) }}</span>
+              </div>
+              <b class="item__total">{{ p.totalEstimado ? pesos(p.totalEstimado) : 'A cotizar' }}</b>
+            </div>
+            <div class="item__cuerpo">
+              <div>
+                <div class="item__cliente">{{ p.nombre }}@if (p.empresa) { · {{ p.empresa }} } · {{ p.ciudad }}</div>
+                <ul class="item__lineas">
+                  @for (l of p.lineas; track l.referencia) { <li><span class="mono">{{ l.cantidad }} × {{ l.referencia }}</span> @if (l.precioUnitario) { <span class="muted">{{ pesos(l.precioUnitario) }} c/u</span> }</li> }
+                </ul>
+                @if (p.nota) { <p class="item__nota">“{{ p.nota }}”</p> }
+              </div>
+              <div class="item__acciones">
+                @if (contactar(p.whatsapp, 'Hola ' + p.nombre + ', le escribimos de Filtramos por su pedido #' + p.numero + '.'); as wa) {
+                  <a [href]="wa" class="btn" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />{{ whatsappLegible(p.whatsapp) }}</a>
+                }
+                @if (puedeGestionar()) {
+                  @for (s of siguientes[p.estado]; track s.estado) {
+                    <button type="button" class="btn" [class.btn--verde]="s.estado !== 'cancelado'" [class.btn--peligro]="s.estado === 'cancelado'"
+                            [disabled]="ocupado() === p.uid" (click)="cambiarPedido(p, s.estado)">{{ s.texto }}</button>
+                  }
+                }
+              </div>
+            </div>
+          </li>
+        } @empty {
+          <li class="vacio">{{ cargando() ? 'Cargando…' : 'No hay pedidos.' }}</li>
+        }
+      </ul>
+    }
+
+    @case ('medida') {
+      <ul class="lista">
+        @for (s of medida(); track s.uid) {
+          <li class="tarjeta item">
+            <div class="item__cab">
+              <div>
+                <b>{{ s.nombre }}</b>@if (s.empresa) { <span class="muted"> · {{ s.empresa }}</span> }
+                <span class="badge" [class]="'badge estado-' + s.estado">{{ nombreEstado[s.estado] }}</span>
+                <span class="muted fecha">{{ fecha(s.createdAt) }}</span>
+              </div>
+              <span class="mono">Cantidad: {{ s.cantidad }}</span>
+            </div>
+            <div class="item__cuerpo">
+              <div class="medida">
+                @if (s.foto) { <a [href]="urlImagen(s.foto)" target="_blank" rel="noopener" class="medida__foto"><img [src]="urlImagen(s.foto)" [alt]="'Foto enviada por ' + s.nombre" /></a> }
+                <p class="medida__texto">{{ s.medidas }}</p>
+              </div>
+              <div class="item__acciones">
+                @if (contactar(s.whatsapp, 'Hola ' + s.nombre + ', le escribimos de Filtramos por su solicitud de fabricación a medida.'); as wa) {
+                  <a [href]="wa" class="btn" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />{{ whatsappLegible(s.whatsapp) }}</a>
+                }
+                @if (puedeGestionar()) {
+                  <label class="sr-only" [for]="'m-est-' + s.uid">Estado</label>
+                  <select class="control" [id]="'m-est-' + s.uid" (change)="cambiarMedida(s, { estado: $any($event.target).value })">
+                    @for (e of ['nuevo', 'cotizado', 'cerrado']; track e) { <option [value]="e" [selected]="e === s.estado">{{ nombreEstado[e] }}</option> }
+                  </select>
+                }
+              </div>
+            </div>
+            @if (puedeGestionar()) {
+              <div class="field">
+                <label [for]="'m-nota-' + s.uid">Nota interna</label>
+                <input [id]="'m-nota-' + s.uid" [value]="s.notaInterna || ''" (change)="cambiarMedida(s, { notaInterna: $any($event.target).value })" maxlength="2000" />
+              </div>
+            } @else if (s.notaInterna) { <p class="muted">Nota: {{ s.notaInterna }}</p> }
+          </li>
+        } @empty {
+          <li class="vacio">{{ cargando() ? 'Cargando…' : 'No hay solicitudes.' }}</li>
+        }
+      </ul>
+    }
+
+    @case ('recordatorios') {
+      <div class="tabla-caja">
+        <table class="tabla tabla--tarjetas">
+          <caption class="sr-only">Recordatorios de cambio</caption>
+          <thead><tr><th scope="col">WhatsApp</th><th scope="col">Producto o máquina</th><th scope="col">Intervalo</th><th scope="col">Próximo aviso</th><th scope="col">Estado</th></tr></thead>
+          <tbody>
+            @for (r of recordatorios(); track r.uid) {
+              <tr>
+                <td>
+                  @if (contactar(r.whatsapp, 'Hola, le escribimos de Filtramos por su recordatorio de cambio de filtro.'); as wa) {
+                    <a [href]="wa" target="_blank" rel="noopener" class="mono">{{ whatsappLegible(r.whatsapp) }}</a>
+                  }
+                  <div class="muted fecha">{{ fecha(r.createdAt) }}</div>
+                </td>
+                <td data-etiqueta="Producto o máquina"><span class="mono">{{ r.referencia || '' }}</span>{{ r.referencia && r.maquina ? ' · ' : '' }}{{ r.maquina || '' }}</td>
+                <td data-etiqueta="Intervalo">{{ r.intervalo || '—' }}</td>
+                <td data-etiqueta="Próximo aviso">
+                  <label class="sr-only" [for]="'r-f-' + r.uid">Próximo aviso</label>
+                  <input type="date" class="control" [id]="'r-f-' + r.uid" [value]="r.proximaFecha ? r.proximaFecha.slice(0, 10) : ''" [disabled]="!puedeGestionar()"
+                         (change)="cambiarRecordatorio(r, { proximaFecha: $any($event.target).value || null })" />
+                </td>
+                <td data-etiqueta="Estado">
+                  <button type="button" class="btn" [disabled]="!puedeGestionar()" (click)="cambiarRecordatorio(r, { estado: r.estado === 'activo' ? 'inactivo' : 'activo' })"
+                          [attr.aria-label]="(r.estado === 'activo' ? 'Desactivar' : 'Activar') + ' recordatorio de ' + r.whatsapp">
+                    {{ nombreEstado[r.estado] }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="tabla__vacia">{{ cargando() ? 'Cargando…' : 'No hay recordatorios.' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

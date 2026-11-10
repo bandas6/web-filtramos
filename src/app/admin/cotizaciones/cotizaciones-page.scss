@@ -1,0 +1,36 @@
+:host { display: contents; }
+h1 { font-size: 32px; }
+.nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+
+.barra { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+.pestanas { display: flex; flex-wrap: wrap; gap: 4px; background: #fff; border: 1px solid var(--f-line); border-radius: 10px; padding: 4px; }
+.pestana {
+  min-height: 40px; padding: 0 14px; border: none; border-radius: 6px; background: none; font: 500 14px var(--f-font-body); cursor: pointer; color: var(--f-text-2);
+  &[aria-selected='true'] { background: var(--f-ink); color: #fff; font-weight: 600; }
+}
+
+.lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.item { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.item__cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } }
+.item__num { font-weight: 700; font-size: 17px; }
+.item__total { font-family: var(--f-font-display); font-size: 20px; }
+.fecha { font-size: 13px; }
+.item__cuerpo { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start; > div:first-child { flex: 1 1 320px; min-width: 0; } }
+.item__cliente { font-weight: 600; }
+.item__lineas { list-style: none; margin: 6px 0 0; padding: 0; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.item__nota { margin: 8px 0 0; font-size: 14px; color: var(--f-text-2); font-style: italic; }
+.item__acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.medida { display: flex; gap: 12px; align-items: flex-start; }
+.medida__foto img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--f-line); }
+.medida__texto { margin: 0; white-space: pre-line; font-size: 15px; overflow-wrap: anywhere; }
+.vacio { color: var(--f-muted); padding: 24px 0; }
+
+.estado-nuevo { background: #e6eefb; color: #1d3f75; }
+.estado-confirmado, .estado-cotizado, .estado-activo { background: var(--f-green-tint); color: var(--f-green-dark); }
+.estado-despachado, .estado-cerrado, .estado-inactivo { background: var(--f-neutral-bg); color: var(--f-text-2); }
+.estado-cancelado { background: var(--f-warn-bg); color: var(--f-warn); }
+
+@media (max-width: 760px) {
+  .item__acciones .btn { flex: 1 1 auto; }
+}

@@ -1,0 +1,168 @@
+@if (noEncontrado()) {
+  <section class="contenedor vacio">
+    <h1>No encontramos esa referencia</h1>
+    <p>Puede que haya cambiado o que todavía no esté publicada. Búsquela por su número o por la equivalencia.</p>
+    <div class="vacio__acciones">
+      <a routerLink="/catalogo" class="btn btn--oscuro">Buscar en el catálogo</a>
+      <a routerLink="/" fragment="medida" class="btn">Pedir fabricación a medida</a>
+    </div>
+  </section>
+} @else {
+@if (p(); as p) {
+  <div class="ficha-arriba">
+    <div class="contenedor">
+      <nav aria-label="Ruta de navegación" class="migas">
+        <a routerLink="/">Inicio</a> / <a routerLink="/catalogo" [queryParams]="{ tipo: p.tipo }">{{ p.tipoNombre || 'Catálogo' }}</a> / <span aria-current="page">{{ p.referencia }}</span>
+      </nav>
+
+      <div class="ficha">
+        <!-- Galería -->
+        <div class="galeria">
+          <div class="galeria__principal">
+            @if (imagenes().length) {
+              <img [src]="imagenes()[fotoActual()]" [alt]="'Foto ' + (fotoActual() + 1) + ' de ' + p.referencia" width="620" height="620" />
+            } @else {
+              <span class="galeria__sin">Sin foto todavía</span>
+            }
+          </div>
+          @if (imagenes().length > 1) {
+            <ul class="galeria__miniaturas" aria-label="Fotos">
+              @for (img of imagenes(); track img; let i = $index) {
+                <li><button type="button" class="miniatura" [class.activa]="i === fotoActual()" (click)="fotoActual.set(i)"
+                            [attr.aria-label]="'Ver foto ' + (i + 1)" [attr.aria-pressed]="i === fotoActual()">
+                  <img [src]="img" alt="" loading="lazy" width="140" height="140" />
+                </button></li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Compra -->
+        <div class="compra">
+          <div class="etiquetas">
+            @if (p.tipoNombre) { <span class="badge badge--oscuro">{{ p.tipo === 'kit' ? p.tipoNombre : 'Filtro de ' + p.tipoNombre.toLowerCase() }}</span> }
+            <span class="badge badge--ok">Fabricación nacional</span>
+          </div>
+          <h1 class="mono compra__ref">{{ p.referencia }}</h1>
+          <p class="compra__desc">{{ descripcion() }}</p>
+
+          @if (p.equivalencias.length) {
+            <section class="equivale" aria-labelledby="eq-titulo">
+              <h2 id="eq-titulo" class="equivale__t">Equivale a</h2>
+              <ul>
+                @for (e of p.equivalencias; track $index) {
+                  <li class="chip">@if (e.marca) { <b>{{ e.marca }}</b> } <span class="mono">{{ e.referencia }}</span></li>
+                }
+              </ul>
+            </section>
+          }
+          @if (p.componentes.length) {
+            <section class="equivale" aria-labelledby="comp-titulo">
+              <h2 id="comp-titulo" class="equivale__t">Incluye</h2>
+              <ul>
+                @for (c of p.componentes; track c.slug) {
+                  <li class="chip"><a [routerLink]="['/filtro', c.slug]" class="mono">{{ c.referencia }}</a>@if (c.cantidad > 1) { <span>× {{ c.cantidad }}</span> }</li>
+                }
+              </ul>
+            </section>
+          }
+
+          <div class="precio">
+            <div class="precio__valor">{{ p.precios.publico ? pesos(precioActual()) : 'Precio a cotizar' }}</div>
+            @if (ajustes.valores().notaPrecios) { <div class="precio__nota">{{ ajustes.valores().notaPrecios }}</div> }
+          </div>
+
+          @if (tramos().length) {
+            <ul class="tramos" aria-label="Precio por volumen">
+              @for (t of tramos(); track t.rango; let i = $index) {
+                <li class="tramo" [class.activo]="i === tramoActivo()"><span>{{ t.rango }}</span><b>{{ pesos(t.precio) }}</b></li>
+              }
+            </ul>
+          }
+
+          <div class="comprar">
+            <div class="field cantidad">
+              <label for="cant">Cantidad</label>
+              <div class="stepper">
+                <button type="button" aria-label="Menos" (click)="cambiarCantidad(cantidad() - 1)" [disabled]="cantidad() <= 1">−</button>
+                <input id="cant" type="number" min="1" inputmode="numeric" [value]="cantidad()" (change)="cambiarCantidad($any($event.target).value)" />
+                <button type="button" aria-label="Más" (click)="cambiarCantidad(cantidad() + 1)">+</button>
+              </div>
+            </div>
+            <button type="button" class="btn btn--oscuro comprar__btn" (click)="agregar()">
+              {{ p.disponibilidad.estado === 'bajo-pedido' ? 'Pedir con fabricación' : 'Agregar al pedido' }}
+            </button>
+          </div>
+          @if (agregado()) {
+            <p class="agregado" role="status">{{ agregado() }} <a routerLink="/pedido">Ver pedido</a></p>
+          }
+          @if (whatsapp(); as wa) {
+            <a [href]="wa" class="btn wa" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />Preguntar por WhatsApp sobre {{ p.referencia }}</a>
+          }
+
+          <ul class="garantias">
+            <li><f-disponibilidad variante="bloque" [estado]="p.disponibilidad.estado" [quedan]="p.disponibilidad.quedan"
+                  [tiempoDespacho]="ajustes.valores().tiempoDespacho" [tiempoFabricacion]="ajustes.valores().tiempoFabricacion" /></li>
+            @if (ajustes.valores().garantia) { <li><f-icono nombre="check" [tam]="16" />Garantía de fábrica · <a routerLink="/legal" fragment="garantia">ver términos</a></li> }
+            <li><f-icono nombre="check" [tam]="16" />Factura electrónica para empresas</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ficha-abajo">
+    <div class="contenedor detalle">
+      @if (ficha().length || p.papeles.length) {
+        <section class="detalle__ficha" aria-labelledby="ft-titulo">
+          <h2 id="ft-titulo">Ficha técnica</h2>
+          <dl class="tabla-ficha">
+            @for (f of ficha(); track f.etiqueta) { <div><dt>{{ f.etiqueta }}</dt><dd class="mono">{{ f.valor }}</dd></div> }
+            @if (p.papeles.length) { <div><dt>Papel</dt><dd class="mono">{{ p.papeles.join(', ') }}</dd></div> }
+          </dl>
+        </section>
+      }
+      <div class="detalle__lado">
+        @if (p.aplicaciones.length) {
+          <section aria-labelledby="ap-titulo">
+            <h2 id="ap-titulo">Aplicaciones</h2>
+            <ul class="aplicaciones">@for (a of p.aplicaciones; track a) { <li>{{ a }}</li> }</ul>
+          </section>
+        }
+        @if (p.intervaloCambio) {
+          <section class="cambio" aria-labelledby="cambio-titulo">
+            <h2 id="cambio-titulo">¿Cada cuánto se cambia?</h2>
+            <p>Recomendado cada {{ p.intervaloCambio }} o según el indicador de restricción. Le avisamos cuando toque.</p>
+            @if (mostrarRecordatorio()) {
+              <app-form-recordatorio [slug]="p.slug" [referencia]="p.referencia" />
+            } @else {
+              <button type="button" class="cambio__btn" (click)="mostrarRecordatorio.set(true)">Activar recordatorio</button>
+            }
+          </section>
+        }
+      </div>
+    </div>
+
+    @if (relacionados().length) {
+      <section class="contenedor relacionados" aria-labelledby="rel-titulo">
+        <h2 id="rel-titulo">Complete el mantenimiento</h2>
+        <div class="relacionados__rejilla">
+          @for (r of relacionados(); track r.slug) { <app-tarjeta-producto [p]="r" /> }
+        </div>
+      </section>
+    }
+  </div>
+
+  <!-- Barra inferior en móvil (Movil-Producto.png) -->
+  <div class="barra-movil">
+    @if (whatsapp(); as wa) {
+      <a [href]="wa" class="btn-icono barra-movil__wa" target="_blank" rel="noopener" [attr.aria-label]="'Preguntar por WhatsApp sobre ' + p.referencia"><f-icono nombre="whatsapp" [tam]="22" /></a>
+    }
+    <button type="button" class="barra-movil__btn" (click)="agregar()">
+      {{ p.disponibilidad.estado === 'bajo-pedido' ? 'Pedir con fabricación' : 'Agregar al pedido' }}{{ p.precios.publico ? ' · ' + pesos(precioActual()) : '' }}
+    </button>
+  </div>
+} @else {
+  <div class="contenedor cargando" aria-busy="true">Cargando…</div>
+}
+}

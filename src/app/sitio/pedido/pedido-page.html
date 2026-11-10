@@ -1,0 +1,86 @@
+<section class="contenedor pedido">
+  <h1>Pedido de cotización</h1>
+
+  @if (confirmado(); as c) {
+    <div class="tarjeta listo" role="status">
+      <f-icono nombre="check" [tam]="28" [grosor]="2.4" />
+      <h2>Recibimos su pedido #{{ c.numero }}</h2>
+      <p>Le enviaremos la cotización con disponibilidad y costo de envío. Todavía no se ha cobrado nada.</p>
+      @if (c.enlace) {
+        <a [href]="c.enlace" class="btn btn--verde" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />Enviar el resumen por WhatsApp</a>
+      }
+      <a routerLink="/catalogo" class="btn">Seguir en el catálogo</a>
+    </div>
+  } @else if (!pedido.lineas().length) {
+    <div class="tarjeta listo">
+      <h2>Su pedido está vacío</h2>
+      <p>Busque su referencia y use “Agregar al pedido”.</p>
+      <a routerLink="/catalogo" class="btn btn--oscuro">Ir al catálogo</a>
+    </div>
+  } @else {
+    <div class="columnas">
+      <section class="tarjeta lineas" aria-labelledby="lineas-t">
+        <h2 id="lineas-t">Productos</h2>
+        <ul>
+          @for (l of pedido.lineas(); track l.slug) {
+            <li class="linea">
+              <div class="linea__foto">@if (urlImagen(l.imagen); as img) { <img [src]="img" alt="" width="64" height="64" /> }</div>
+              <div class="linea__datos">
+                <a [routerLink]="['/filtro', l.slug]" class="mono linea__ref">{{ l.referencia }}</a>
+                <span class="muted">{{ l.tipoNombre }} · {{ unitario(l) ? pesos(unitario(l)) + ' c/u' : 'a cotizar' }}</span>
+              </div>
+              <div class="linea__cant">
+                <label class="sr-only" [for]="'cant-' + l.slug">Cantidad de {{ l.referencia }}</label>
+                <input [id]="'cant-' + l.slug" class="control" type="number" min="1" inputmode="numeric" [value]="l.cantidad" (change)="pedido.cambiarCantidad(l.slug, $any($event.target).value)" />
+              </div>
+              <div class="linea__sub">{{ subtotal(l) !== null ? pesos(subtotal(l)) : '—' }}</div>
+              <button type="button" class="btn-icono btn-icono--peligro" (click)="pedido.quitar(l.slug)" [attr.aria-label]="'Quitar ' + l.referencia"><f-icono nombre="eliminar" /></button>
+            </li>
+          }
+        </ul>
+        <div class="total">
+          <span>Total estimado</span>
+          <b>{{ total() !== null ? pesos(total()) : 'Se cotiza' }}</b>
+        </div>
+        @if (ajustes.valores().notaPrecios) { <p class="muted nota">{{ ajustes.valores().notaPrecios }}</p> }
+        @if (ajustes.valores().politicaEnvios) { <p class="muted nota">Envíos: <a routerLink="/legal" fragment="envios">ver política</a>.</p> }
+      </section>
+
+      <form class="tarjeta datos" [formGroup]="form" (ngSubmit)="enviar()" novalidate aria-labelledby="datos-t">
+        <h2 id="datos-t">Sus datos</h2>
+        <div class="field">
+          <label for="p-nombre">Nombre</label>
+          <input id="p-nombre" formControlName="nombre" autocomplete="name" [attr.aria-invalid]="mal('nombre')" />
+          @if (mal('nombre')) { <small class="field__error">Escriba su nombre.</small> }
+        </div>
+        <div class="field">
+          <label for="p-wa">WhatsApp</label>
+          <input id="p-wa" type="tel" inputmode="tel" formControlName="whatsapp" autocomplete="tel" placeholder="57 300 000 0000" [attr.aria-invalid]="mal('whatsapp')" />
+          @if (mal('whatsapp')) { <small class="field__error">Escriba su número con indicativo.</small> }
+        </div>
+        <div class="field">
+          <label for="p-empresa">Empresa <small>(opcional)</small></label>
+          <input id="p-empresa" formControlName="empresa" autocomplete="organization" />
+        </div>
+        <div class="field">
+          <label for="p-ciudad">Ciudad de entrega</label>
+          <input id="p-ciudad" formControlName="ciudad" autocomplete="address-level2" [attr.aria-invalid]="mal('ciudad')" />
+          @if (mal('ciudad')) { <small class="field__error">Escriba la ciudad.</small> }
+        </div>
+        <div class="field">
+          <label for="p-nota">Nota <small>(opcional)</small></label>
+          <textarea id="p-nota" formControlName="nota" rows="3" maxlength="1000"></textarea>
+        </div>
+        <input type="text" formControlName="sitioWeb" class="trampa" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <label class="check consentimiento">
+          <input type="checkbox" formControlName="consentimiento" [attr.aria-invalid]="mal('consentimiento')" />
+          <span>Autorizo el tratamiento de mis datos para responder este pedido, según la <a routerLink="/legal" fragment="datos">política de tratamiento de datos</a>.</span>
+        </label>
+        @if (mal('consentimiento')) { <small class="field__error">Para enviar, acepte el tratamiento de datos.</small> }
+        @if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+        <button type="submit" class="btn btn--verde btn--bloque" [disabled]="enviando()">{{ enviando() ? 'Enviando…' : 'Enviar pedido de cotización' }}</button>
+        <p class="muted nota">Sin pagos en línea: le respondemos por WhatsApp con la cotización final.</p>
+      </form>
+    </div>
+  }
+</section>

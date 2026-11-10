@@ -1,0 +1,78 @@
+<a class="saltar" href="#principal">Saltar al contenido</a>
+
+<div class="barra">
+  <div class="contenedor barra__fila">
+    <span>Fabricantes de filtros en Colombia · Envíos a todo el país</span>
+    @if (numero()) {
+      <span>Ventas y asesoría: <a [href]="enlaceCotizar()" class="barra__wa" target="_blank" rel="noopener">WhatsApp {{ numero() }}</a></span>
+    }
+  </div>
+</div>
+
+<header class="cabecera">
+  <div class="contenedor cabecera__fila">
+    <a routerLink="/" class="cabecera__logo" aria-label="Filtramos, inicio">
+      <img src="logo.png" alt="Filtramos · AIRE Puro Filtros" width="104" height="52" />
+    </a>
+
+    <nav aria-label="Principal" class="cabecera__nav" [class.abierta]="menuAbierto()" id="nav-principal">
+      <a routerLink="/catalogo">Catálogo</a>
+      <a routerLink="/" fragment="kits">Kits de mantenimiento</a>
+      <a routerLink="/" fragment="medida">Fabricación a medida</a>
+      <a routerLink="/" fragment="sectores">Empresas</a>
+      <a routerLink="." fragment="contacto">Contacto</a>
+    </nav>
+
+    <div class="cabecera__acciones">
+      <a routerLink="/pedido" class="btn-icono cabecera__carrito" [attr.aria-label]="'Pedido de cotización' + (pedido.unidades() ? ', ' + pedido.unidades() + ' unidades' : '')">
+        <f-icono nombre="carrito" [tam]="20" />
+        @if (pedido.unidades()) { <span class="cabecera__cuenta" aria-hidden="true">{{ pedido.unidades() }}</span> }
+      </a>
+      @if (enlaceCotizar(); as wa) {
+        <a [href]="wa" class="btn btn--verde cabecera__wa" target="_blank" rel="noopener"><f-icono nombre="whatsapp" />Cotizar por WhatsApp</a>
+      }
+      <button type="button" class="cabecera__menu" (click)="menuAbierto.set(!menuAbierto())"
+              [attr.aria-expanded]="menuAbierto()" aria-controls="nav-principal" aria-label="Menú">
+        <f-icono [nombre]="menuAbierto() ? 'cerrar' : 'menu'" [tam]="22" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="principal" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer id="contacto" class="pie">
+  <div class="contenedor pie__rejilla">
+    <div>
+      <img src="logo.png" alt="Filtramos" width="88" height="44" />
+      <p class="pie__texto">Filtramos SAS · Fabricantes de elementos filtrantes de aire.</p>
+    </div>
+    <nav aria-label="Productos">
+      <h2>Productos</h2>
+      <a routerLink="/catalogo">Catálogo completo</a>
+      <a routerLink="/catalogo" [queryParams]="{ tipo: 'kit' }">Kits de mantenimiento</a>
+      <a routerLink="/" fragment="medida">Fabricación a medida</a>
+    </nav>
+    <nav aria-label="Empresas">
+      <h2>Empresas</h2>
+      <a routerLink="/" fragment="sectores">Precio por volumen</a>
+      <a routerLink="/pedido">Pedido de cotización</a>
+    </nav>
+    <div>
+      <h2>Contacto</h2>
+      @if (numero()) { <a [href]="enlaceCotizar()" target="_blank" rel="noopener">WhatsApp {{ numero() }}</a> }
+      @if (ajustes.valores().correoContacto; as correo) { <a [href]="'mailto:' + correo">{{ correo }}</a> }
+      @if (direccion()) { <span>{{ direccion() }}</span> }
+    </div>
+  </div>
+  <div class="contenedor pie__legal">
+    <span>© {{ anio }} Filtramos SAS</span>
+    <a routerLink="/legal">Política de tratamiento de datos · Términos y garantía</a>
+  </div>
+</footer>
+
+@if (enlaceCotizar() && !enFicha()) {
+  <a [href]="enlaceCotizar()" class="flotante" target="_blank" rel="noopener"><f-icono nombre="whatsapp" [tam]="20" />Cotizar por WhatsApp</a>
+}
