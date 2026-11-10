@@ -1,3 +1,4 @@
+import { providersDePrueba } from '../../../../testing/providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Upload } from './upload';
@@ -8,7 +9,8 @@ describe('Upload', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Upload]
+      imports: [Upload],
+      providers: providersDePrueba
     })
     .compileComponents();
 

@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { Catalogo } from '../../../services/catalogo/catalogo';
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../services/auth/auth';
+import { claveDeBusqueda } from '../../../core/referencias';
 
 import { NgSelectModule } from '@ng-select/ng-select';
 import Swal from 'sweetalert2';
@@ -149,12 +150,12 @@ export class CatalogoAdmin implements OnInit {
   }
 
   onSearch(): void {
-    const term = this.searchTerm.toLowerCase();
+    // Ignora mayúsculas, espacios y guiones: "af100" encuentra "AF-100"
+    const clave = claveDeBusqueda(this.searchTerm);
     this.currentPage = 1;
     this.filteredProducts = this.products.filter(product =>
-      (product.referencia || '').toLowerCase().includes(term) ||
-      (product.malla?.toLowerCase().includes(term)) ||
-      (product.category?.toLowerCase().includes(term))
+      [product.referencia, ...(product.equivalencias || []), product.malla, product.category]
+        .some(valor => claveDeBusqueda(valor).includes(clave))
     );
   }
 

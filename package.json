@@ -7,7 +7,8 @@
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:adminFiltramos": "node dist/adminFiltramos/server/server.mjs"
+    "serve:ssr:adminFiltramos": "node dist/adminFiltramos/server/server.mjs",
+    "capturas": "node scripts/capturas.mjs"
   },
   "private": true,
   "dependencies": {
@@ -40,6 +41,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "playwright": "^1.65.0",
     "typescript": "~5.8.2"
   }
 }
