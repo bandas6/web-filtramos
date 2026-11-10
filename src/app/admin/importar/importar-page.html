@@ -1,0 +1,196 @@
+<header class="encabezado">
+  <div>
+    <h1>Importar desde Excel</h1>
+    <p class="encabezado__nota">Cargue productos, precios y stock inicial. Nada se guarda hasta que confirme.</p>
+  </div>
+  <button type="button" class="btn" (click)="descargarPlantilla()"><f-icono nombre="descargar" />Descargar plantilla oficial (.xlsx)</button>
+</header>
+
+<ol class="pasos" aria-label="Pasos de la importación">
+  @for (p of pasos; track p; let i = $index) {
+    <li class="paso" [class.paso--actual]="paso() === i + 1" [class.paso--hecho]="paso() > i + 1"
+        [attr.aria-current]="paso() === i + 1 ? 'step' : null">
+      <span class="paso__num" aria-hidden="true">
+        @if (paso() > i + 1) { <f-icono nombre="check" [tam]="16" [grosor]="2.4" /> } @else { {{ i + 1 }} }
+      </span>
+      {{ p }}
+      @if (paso() > i + 1) { <span class="sr-only">(hecho)</span> }
+    </li>
+  }
+</ol>
+
+@if (error()) { <div class="alerta" role="alert">{{ error() }}</div> }
+
+<!-- Paso 1: subir -->
+@if (paso() === 1) {
+  <section class="tarjeta subir">
+    <f-icono nombre="excel" [tam]="32" />
+    <div>
+      <h2>Elija el archivo de Excel</h2>
+      <p class="muted">Formato .xlsx, máximo 10 MB. Puede usar la plantilla oficial o el archivo que ya tiene.</p>
+    </div>
+    <label class="btn btn--verde subir__boton">
+      {{ cargando() ? 'Leyendo…' : 'Elegir archivo' }}
+      <input #archivoInput type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+             class="sr-only" (change)="elegirArchivo(archivoInput)" [disabled]="cargando()" />
+    </label>
+  </section>
+}
+
+<!-- Paso 2: asociar columnas -->
+@if (paso() === 2 && analisis(); as a) {
+  <section class="tarjeta archivo" aria-label="Archivo">
+    <span class="archivo__icono"><f-icono nombre="excel" [tam]="22" /></span>
+    <div class="archivo__datos">
+      <div class="archivo__nombre">{{ a.nombreArchivo }}</div>
+      <div class="muted archivo__detalle">Hoja: {{ a.hoja }} · {{ resumen()?.total ?? '—' }} filas · fila {{ a.filaEncabezados }} tomada como encabezados</div>
+    </div>
+    <div class="archivo__controles">
+      <label class="sr-only" for="imp-hoja">Hoja</label>
+      <select id="imp-hoja" class="control" (change)="cambiarHoja($any($event.target).value)">
+        @for (h of a.hojas; track h.nombre) { <option [value]="h.nombre" [selected]="h.nombre === a.hoja">{{ h.nombre }}</option> }
+      </select>
+      <label class="fila-enc" for="imp-fila">Fila de encabezados
+        <input id="imp-fila" class="control" type="number" min="1" [value]="a.filaEncabezados" (change)="cambiarFilaEncabezados($any($event.target).value)" />
+      </label>
+      <label class="btn">Cambiar archivo
+        <input #otro type="file" accept=".xlsx" class="sr-only" (change)="elegirArchivo(otro)" />
+      </label>
+    </div>
+  </section>
+
+  <div class="columnas">
+    <section class="tarjeta asociar" aria-labelledby="imp-asociar">
+      <div class="asociar__cabecera">
+        <h2 id="imp-asociar">¿Qué es cada columna de su archivo?</h2>
+        <p class="muted">Elija el campo de Filtramos para cada columna. El sistema recuerda la elección para la próxima vez.</p>
+      </div>
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr><th scope="col">Columna en su archivo</th><th scope="col">Ejemplo (fila {{ filaEjemplo() }})</th><th scope="col">Campo en Filtramos</th></tr>
+        </thead>
+        <tbody>
+          @for (c of a.columnas; track c.indice) {
+            <tr>
+              <td class="col-nombre">{{ c.encabezado }}</td>
+              <td data-etiqueta="Ejemplo" class="mono ejemplo">{{ ejemplo(c.ejemplo) }}</td>
+              <td data-etiqueta="Campo en Filtramos" class="ancho">
+                <div class="campo">
+                  <label class="sr-only" [for]="'imp-col-' + c.indice">Campo para la columna {{ c.encabezado }}</label>
+                  <select class="control" [id]="'imp-col-' + c.indice" (change)="asociar(c.indice, $any($event.target).value)"
+                          [class.control--elegido]="!!asociacion()[c.indice]">
+                    <option value="" [selected]="!asociacion()[c.indice]">— No importar —</option>
+                    @for (campo of a.campos; track campo.clave) {
+                      <option [value]="campo.clave" [selected]="asociacion()[c.indice] === campo.clave">
+                        {{ campo.etiqueta }}{{ campo.requerido ? ' (llave)' : '' }}{{ camposUsados().has(campo.clave) && asociacion()[c.indice] !== campo.clave ? ' · ya usada' : '' }}
+                      </option>
+                    }
+                  </select>
+                  <span class="campo__origen">{{ origenDe(c.indice) }}</span>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="lado">
+      <section class="tarjeta previa" aria-labelledby="imp-previa" aria-live="polite">
+        <h2 id="imp-previa">Vista previa</h2>
+        @if (!referenciaAsociada()) {
+          <p class="alerta">Asocie una columna a <b>Referencia</b>: es la llave de cada producto.</p>
+        } @else if (errorPrevia()) {
+          <p class="alerta">{{ errorPrevia() }}</p>
+        } @else {
+          <div class="conteos" [attr.aria-busy]="calculando()">
+            <div class="conteo conteo--nuevos"><b>{{ resumen()?.nuevos ?? '…' }}</b>Nuevos</div>
+            <div class="conteo conteo--actualizan"><b>{{ resumen()?.actualizan ?? '…' }}</b>Actualizan</div>
+            <div class="conteo conteo--errores"><b>{{ resumen()?.conErrores ?? '…' }}</b>Con errores</div>
+          </div>
+        }
+        <p class="nota">La <b>referencia</b> es la llave: si ya existe, se actualiza; si no, se crea. El stock entra como movimiento de <b>carga inicial</b>. Las celdas vacías no borran datos.</p>
+      </section>
+
+      @if (previa()?.errores?.length) {
+        <section class="tarjeta errores" aria-labelledby="imp-errores">
+          <div class="errores__cabecera">
+            <h2 id="imp-errores">Filas con errores</h2>
+            <button type="button" class="btn btn--enlace" (click)="descargarErrores()">Descargar en Excel</button>
+          </div>
+          <ul>
+            @for (e of previa()!.errores!.slice(0, 8); track e.fila) {
+              <li><span class="mono fila">Fila {{ e.fila }}</span><span>{{ e.errores.join('; ') }}</span></li>
+            }
+          </ul>
+          @if (previa()!.errores!.length > 8) { <p class="muted mas">Y {{ previa()!.errores!.length - 8 }} más en el Excel.</p> }
+        </section>
+        <label class="check">
+          <input type="checkbox" [checked]="omitirErrores()" (change)="omitirErrores.set($any($event.target).checked)" />
+          Omitir filas con errores e importar el resto
+        </label>
+      }
+
+      <button type="button" class="btn btn--verde btn--bloque" [disabled]="!puedeContinuar()" (click)="irARevisar()">Continuar a revisión</button>
+      <button type="button" class="btn btn--enlace cancelar" (click)="reiniciar()">Cancelar</button>
+    </aside>
+  </div>
+}
+
+<!-- Paso 3: revisar -->
+@if (paso() === 3 && previa(); as p) {
+  <section class="tarjeta revisar">
+    <h2>Revise antes de confirmar</h2>
+    <p>
+      Se crearán <b>{{ p.resumen?.nuevos }}</b> productos y se actualizarán <b>{{ p.resumen?.actualizan }}</b>.
+      @if (p.resumen?.conErrores) { Se omitirán <b>{{ p.resumen?.conErrores }}</b> filas con errores. }
+    </p>
+    @if (p.avisos?.length) {
+      <div class="alerta" role="note">
+        <div>
+          <b>Atención:</b>
+          <ul>@for (av of p.avisos; track av.fila) { <li>Fila {{ av.fila }}: {{ av.aviso }}</li> }</ul>
+        </div>
+      </div>
+    }
+    <table class="tabla tabla--tarjetas">
+      <caption class="sr-only">Primeras filas que se importarán</caption>
+      <thead><tr><th scope="col">Fila</th><th scope="col">Referencia</th><th scope="col">Acción</th><th scope="col">Campos</th><th scope="col">Stock</th></tr></thead>
+      <tbody>
+        @for (m of p.muestra; track m.fila) {
+          <tr>
+            <td class="mono">{{ m.fila }}</td>
+            <td data-etiqueta="Referencia" class="mono sin-corte"><b>{{ m.referencia }}</b></td>
+            <td data-etiqueta="Acción"><span class="badge" [class.badge--ok]="m.accion === 'crear'" [class.badge--neutro]="m.accion === 'actualizar'">{{ m.accion === 'crear' ? 'Nuevo' : 'Actualiza' }}</span></td>
+            <td data-etiqueta="Campos" class="ancho muted">{{ m.campos.join(', ') || '—' }}</td>
+            <td data-etiqueta="Stock">{{ m.stock || 'Sin cambio' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if ((p.resumen?.nuevos || 0) + (p.resumen?.actualizan || 0) > (p.muestra?.length || 0)) {
+      <p class="muted">Se muestran las primeras {{ p.muestra?.length }} filas.</p>
+    }
+    <div class="acciones">
+      <button type="button" class="btn" (click)="paso.set(2)">Volver</button>
+      <button type="button" class="btn btn--verde" (click)="confirmar()" [disabled]="cargando()">{{ cargando() ? 'Importando…' : 'Confirmar importación' }}</button>
+    </div>
+  </section>
+}
+
+<!-- Paso 4: resultado -->
+@if (paso() === 4 && resultado(); as r) {
+  <section class="tarjeta resultado" role="status">
+    <span class="resultado__icono"><f-icono nombre="check" [tam]="28" [grosor]="2.4" /></span>
+    <h2>Importación completada</h2>
+    <p>{{ r.creados }} productos nuevos · {{ r.actualizados }} actualizados · {{ r.movimientos }} movimientos de carga inicial
+      @if (r.omitidas) { · {{ r.omitidas }} filas omitidas }</p>
+    <p class="muted mono">{{ r.idImportacion }}</p>
+    <p class="muted">Los productos sin foto o sin precio quedan en borrador hasta completarlos.</p>
+    <div class="acciones">
+      <a class="btn" routerLink="/admin/productos" [queryParams]="{ estado: 'borrador' }">Ver borradores</a>
+      <a class="btn" routerLink="/admin/inventario">Ir a Inventario</a>
+      <button type="button" class="btn btn--verde" (click)="reiniciar()">Importar otro archivo</button>
+    </div>
+  </section>
+}

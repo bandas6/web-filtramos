@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CampoAjuste, FilaInventario, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
+import { AnalisisImportacion, CampoAjuste, FilaInventario, ResultadoImportacion, Imagen, IndicadoresInventario, Movimiento, PaginaProductos, Producto, Resumen, UsuarioAdmin } from './modelos';
 
 // Acceso a /api/admin. El interceptor agrega el token.
 @Injectable({ providedIn: 'root' })
@@ -49,6 +49,32 @@ export class AdminApi {
   }
   registrarMovimiento(datos: { referencia: string; tipo: string; motivo: string; cantidad?: number | null; stockContado?: number | null; nota?: string }): Observable<Movimiento> {
     return this.http.post<any>(`${this.url}/movimientos`, datos).pipe(map((r) => r.movimiento));
+  }
+
+  // Importación y exportación Excel
+  private formImportacion(archivo: File, o: { hoja?: string; filaEncabezados?: number; asociacion?: Record<string, string>; omitirErrores?: boolean }) {
+    const datos = new FormData();
+    datos.append('archivo', archivo);
+    if (o.hoja) datos.append('hoja', o.hoja);
+    if (o.filaEncabezados) datos.append('filaEncabezados', String(o.filaEncabezados));
+    if (o.asociacion) datos.append('asociacion', JSON.stringify(o.asociacion));
+    if (o.omitirErrores) datos.append('omitirErrores', 'true');
+    return datos;
+  }
+  analizarImportacion(archivo: File, o: { hoja?: string; filaEncabezados?: number; asociacion?: Record<string, string> } = {}): Observable<AnalisisImportacion> {
+    return this.http.post<AnalisisImportacion>(`${this.url}/importar/analizar`, this.formImportacion(archivo, o));
+  }
+  confirmarImportacion(archivo: File, o: { hoja: string; filaEncabezados: number; asociacion: Record<string, string>; omitirErrores: boolean }): Observable<ResultadoImportacion> {
+    return this.http.post<ResultadoImportacion>(`${this.url}/importar/confirmar`, this.formImportacion(archivo, o));
+  }
+  erroresImportacion(archivo: File, o: { hoja: string; filaEncabezados: number; asociacion: Record<string, string> }): Observable<Blob> {
+    return this.http.post(`${this.url}/importar/errores`, this.formImportacion(archivo, o), { responseType: 'blob' });
+  }
+  plantilla(): Observable<Blob> {
+    return this.http.get(`${this.url}/importar/plantilla`, { responseType: 'blob' });
+  }
+  exportarExcel(): Observable<Blob> {
+    return this.http.get(`${this.url}/exportar`, { responseType: 'blob' });
   }
 
   // Imágenes

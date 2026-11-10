@@ -155,3 +155,32 @@ export const MOTIVOS_MANUALES: Record<'entrada' | 'salida' | 'ajuste', string[]>
   salida: ['venta'],
   ajuste: ['conteo-fisico']
 };
+
+// ---- Importador (etapa D)
+export interface CampoImportacion { clave: string; etiqueta: string; tipo: string; requerido?: boolean; ayuda?: string; }
+export interface ColumnaExcel { indice: number; encabezado: string; ejemplo: unknown; }
+export interface AnalisisImportacion {
+  nombreArchivo: string;
+  hojas: { nombre: string; filas: number }[];
+  hoja: string;
+  filaEncabezados: number;
+  columnas: ColumnaExcel[];
+  campos: CampoImportacion[];
+  asociacion: Record<string, string>;
+  origen?: Record<string, 'plantilla' | 'guardada'>;
+  resumen?: { total: number; nuevos: number; actualizan: number; conErrores: number };
+  errores?: { fila: number; referencia: string | null; errores: string[] }[];
+  avisos?: { fila: number; aviso: string }[];
+  muestra?: { fila: number; accion: 'crear' | 'actualizar'; referencia: string; campos: string[]; stock: string | null }[];
+}
+export interface ResultadoImportacion { idImportacion: string; creados: number; actualizados: number; omitidas: number; movimientos: number; }
+
+// Descarga un archivo recibido como Blob
+export function descargar(blob: Blob, nombre: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

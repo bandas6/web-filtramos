@@ -6,8 +6,9 @@ import { Auth } from '../../services/auth/auth';
 import { Avisos } from '../../shared/ui/avisos';
 import { BadgeDisponibilidad } from '../../shared/ui/badge-disponibilidad';
 import { TarjetaIndicador } from '../../shared/ui/tarjeta-indicador';
+import { Icono } from '../../shared/ui/icono';
 import { AdminApi, mensajeDeError } from '../admin-api';
-import { FilaInventario, IndicadoresInventario, Movimiento, MOTIVOS_MANUALES, NOMBRE_MOTIVO, TIPOS } from '../modelos';
+import { descargar, FilaInventario, IndicadoresInventario, Movimiento, MOTIVOS_MANUALES, NOMBRE_MOTIVO, TIPOS } from '../modelos';
 import { ListaMovimientos } from './lista-movimientos';
 
 type TipoManual = 'entrada' | 'salida' | 'ajuste';
@@ -15,7 +16,7 @@ type TipoManual = 'entrada' | 'salida' | 'ajuste';
 @Component({
   selector: 'app-inventario-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, TarjetaIndicador, BadgeDisponibilidad, ListaMovimientos],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, TarjetaIndicador, BadgeDisponibilidad, ListaMovimientos, Icono],
   templateUrl: './inventario-page.html',
   styleUrl: './inventario-page.scss'
 })
@@ -40,6 +41,7 @@ export class InventarioPage implements OnInit {
   guardando = signal(false);
   error = signal<string | null>(null);
   errorForm = signal<string | null>(null);
+  exportando = signal(false);
 
   tipoMov = signal<TipoManual>('entrada');
   motivos = computed(() => MOTIVOS_MANUALES[this.tipoMov()]);
@@ -74,6 +76,14 @@ export class InventarioPage implements OnInit {
 
   cargarRecientes() {
     this.api.movimientos({ porPagina: 6 }).subscribe({ next: (r) => this.recientes.set(r.movimientos), error: () => {} });
+  }
+
+  exportar() {
+    this.exportando.set(true);
+    this.api.exportarExcel().subscribe({
+      next: (b) => { this.exportando.set(false); descargar(b, `productos-filtramos-${new Date().toISOString().slice(0, 10)}.xlsx`); },
+      error: () => { this.exportando.set(false); this.avisos.error('No se pudo generar el Excel.'); }
+    });
   }
 
   buscar(valor: string) {

@@ -13,6 +13,7 @@ interface Opcion { texto: string; ruta: string; icono: NombreIcono; query?: Reco
 const OPCIONES: Opcion[] = [
   { texto: 'Productos', ruta: '/admin/productos', icono: 'productos' },
   { texto: 'Inventario', ruta: '/admin/inventario', icono: 'inventario' },
+  { texto: 'Importar Excel', ruta: '/admin/importar', icono: 'importar', roles: ['admin'] },
   { texto: 'Kits', ruta: '/admin/productos', icono: 'kits', query: { tipo: 'kit' } },
   { texto: 'Imágenes', ruta: '/admin/imagenes', icono: 'imagenes', roles: ['admin'] },
   { texto: 'Usuarios y roles', ruta: '/admin/usuarios', icono: 'usuarios', roles: ['admin'] },

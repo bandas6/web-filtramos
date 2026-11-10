@@ -4,6 +4,7 @@
 .encabezado { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
 .encabezado h1 { font-size: 32px; }
 .encabezado__nota { margin: 4px 0 0; color: var(--f-muted); font-size: 15px; }
+.encabezado__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
 
 .siigo { padding: 14px 18px; display: flex; gap: 12px; align-items: center; }
 .siigo__punto { width: 10px; height: 10px; border-radius: 50%; background: #9aa198; flex: none; }

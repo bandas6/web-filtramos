@@ -3,6 +3,12 @@
     <h1>Inventario</h1>
     <p class="encabezado__nota">Producto terminado. El stock se calcula a partir de los movimientos.</p>
   </div>
+  <div class="encabezado__acciones">
+    @if (auth.esAdmin()) {
+      <a class="btn" routerLink="/admin/importar"><f-icono nombre="subir" />Importar Excel</a>
+    }
+    <button type="button" class="btn" (click)="exportar()" [disabled]="exportando()"><f-icono nombre="descargar" />{{ exportando() ? 'Generando…' : 'Exportar Excel' }}</button>
+  </div>
 </header>
 
 <!-- Siigo: se conecta en la etapa G (pendiente de confirmar el plan con API) -->

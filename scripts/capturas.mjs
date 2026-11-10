@@ -17,6 +17,18 @@ const ANCHOS = [
   { nombre: 'movil', width: 390, height: 844 }
 ];
 
+// Importador: sube el Excel de demostración (CAPTURA_EXCEL) y asocia las columnas a mano
+const EXCEL = process.env.CAPTURA_EXCEL;
+async function prepararImportacion(p) {
+  await p.locator('input[type=file]').first().setInputFiles(EXCEL);
+  await p.getByLabel('Hoja', { exact: true }).waitFor();
+  await p.getByLabel('Hoja', { exact: true }).selectOption('Lista DEMO');
+  await p.waitForTimeout(800);
+  const asociar = { 'Ref.': 'referencia', 'Diam. Ext': 'diametroExterno', 'Alto': 'alto', 'Equivale': 'equivalencias', 'Precio': 'precioPublico', 'Cant.': 'stock', 'Cod. Siigo': 'codigoSiigo' };
+  for (const [col, campo] of Object.entries(asociar)) await p.getByLabel(`Campo para la columna ${col}`, { exact: true }).selectOption(campo);
+  await p.waitForTimeout(1200);
+}
+
 // nombre, ruta, requiere sesión, acción opcional antes de capturar
 const PANTALLAS = [
   ['login', '/admin/login', false],
@@ -27,6 +39,9 @@ const PANTALLAS = [
   ['inventario', '/admin/inventario', true],
   ['inventario-ajuste', '/admin/inventario', true, async (p) => { await p.getByRole('radio', { name: 'Ajuste' }).click(); await p.getByRole('combobox', { name: 'Referencia', exact: true }).fill('DEMO-AP-002'); }],
   ['historial', '/admin/inventario/historial', true],
+  ['importar', '/admin/importar', true],
+  ['importar-asociar', '/admin/importar', true, async (p) => { if (EXCEL) await prepararImportacion(p); }],
+  ['importar-revisar', '/admin/importar', true, async (p) => { if (EXCEL) { await prepararImportacion(p); await p.getByRole('button', { name: 'Continuar a revisión' }).click(); await p.waitForTimeout(300); } }],
   ['imagenes', '/admin/imagenes', true],
   ['usuarios', '/admin/usuarios', true],
   ['ajustes', '/admin/ajustes', true],
