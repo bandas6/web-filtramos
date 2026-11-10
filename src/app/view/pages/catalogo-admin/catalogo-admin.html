@@ -3,7 +3,7 @@
 
   <div class="toolbar">
     <div>
-      <button class="btn btn-primary" (click)="openAddModal()">Agregar Producto</button>
+      <button *ngIf="esAdmin()" class="btn btn-primary" (click)="openAddModal()">Agregar Producto</button>
       <button class="btn btn-secondary" (click)="exportToPDF()">Exportar a PDF</button>
     </div>
     <input type="text" class="search-input" [(ngModel)]="searchTerm" (input)="onSearch()"
@@ -37,8 +37,10 @@
           <td>{{ product.category || 'N/A' }}</td>
           <td>{{ product.stock }}</td>
           <td>
-            <button class="btn btn-primary btn-sm" (click)="openEditModal(product)">Editar</button>
-            <button class="btn btn-danger btn-sm" (click)="openDeleteModal(product)">Eliminar</button>
+            <ng-container *ngIf="esAdmin()">
+              <button class="btn btn-primary btn-sm" (click)="openEditModal(product)">Editar</button>
+              <button class="btn btn-danger btn-sm" (click)="openDeleteModal(product)">Eliminar</button>
+            </ng-container>
             <button class="btn btn-warning btn-sm" (click)="viewDetails(product)">Detalles</button>
           </td>
         </tr>
@@ -79,6 +81,17 @@
         <div class="form-group">
           <label for="diametroInterno">Diámetro Interno</label>
           <input type="number" id="diametroInterno" formControlName="diametroInterno" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="alto">Alto (mm)</label>
+          <input type="number" id="alto" formControlName="alto" class="form-control" min="0">
+        </div>
+        <div class="form-group">
+          <label for="cortePapel">Corte de papel (mm)</label>
+          <input type="number" id="cortePapel" formControlName="cortePapel" class="form-control" min="0">
         </div>
       </div>
 

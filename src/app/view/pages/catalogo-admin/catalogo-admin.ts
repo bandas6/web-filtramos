@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { firstValueFrom } from 'rxjs';
 import { Catalogo } from '../../../services/catalogo/catalogo';
 import { environment } from '../../../../environments/environment';
+import { Auth } from '../../../services/auth/auth';
 
 import { NgSelectModule } from '@ng-select/ng-select';
 import Swal from 'sweetalert2';
@@ -12,10 +13,11 @@ interface Product {
   uid: string;
   referencia: string;
   diametroExterno?: string;
-  diametroInterno?: number;
-  alturaPliegue?: number;
-  cortePapel?: number;
-  cantidadPliegues?: number;
+  diametroInterno?: number | null;
+  alto?: number | null;
+  alturaPliegue?: number | null;
+  cortePapel?: number | null;
+  cantidadPliegues?: number | null;
   malla?: string;
   longitudMallaExterna?: string;
   longitudMallaInterna?: string;
@@ -47,6 +49,8 @@ export class CatalogoAdmin implements OnInit {
 
   private catalogoSvc = inject(Catalogo);
   private cd = inject(ChangeDetectorRef);
+  // Solo admin puede crear, editar y eliminar (la API también lo exige)
+  readonly esAdmin = inject(Auth).esAdmin;
 
   products: Product[] = [];
   filteredProducts: Product[] = [];
@@ -73,6 +77,7 @@ export class CatalogoAdmin implements OnInit {
       referencia: ['', Validators.required],
       diametroExterno: [''],
       diametroInterno: [null, Validators.min(0)],
+      alto: [null, Validators.min(0)],
       alturaPliegue: [null, Validators.min(0)],
       cortePapel: [null, Validators.min(0)],
       cantidadPliegues: [null, Validators.min(0)],
@@ -147,7 +152,7 @@ export class CatalogoAdmin implements OnInit {
     const term = this.searchTerm.toLowerCase();
     this.currentPage = 1;
     this.filteredProducts = this.products.filter(product =>
-      product.referencia.toLowerCase().includes(term) ||
+      (product.referencia || '').toLowerCase().includes(term) ||
       (product.malla?.toLowerCase().includes(term)) ||
       (product.category?.toLowerCase().includes(term))
     );
@@ -213,15 +218,16 @@ export class CatalogoAdmin implements OnInit {
 
     const formValue = this.productForm.value;
     const toArray = (value: string) => value?.split(',').map(v => v.trim()).filter(v => v) || [];
-    // Campo vacío = sin dato (antes se guardaba como 0)
+    // Campo vacío = sin dato: se envía null y la API lo borra (antes se guardaba como 0)
     const toNumber = (value: any) =>
-      value === null || value === undefined || value === '' ? undefined : Number(value);
+      value === null || value === undefined || value === '' ? null : Number(value);
 
     const productData: Product = {
       uid: formValue.uid || this.generateId(),
       referencia: formValue.referencia,
       diametroExterno: formValue.diametroExterno,
       diametroInterno: toNumber(formValue.diametroInterno),
+      alto: toNumber(formValue.alto),
       alturaPliegue: toNumber(formValue.alturaPliegue),
       cortePapel: toNumber(formValue.cortePapel),
       cantidadPliegues: toNumber(formValue.cantidadPliegues),
@@ -325,14 +331,19 @@ export class CatalogoAdmin implements OnInit {
 
 
   viewDetails(product: Product): void {
+    // Los datos se escapan: el html de Swal no sanitiza y un valor con <script> o <img onerror> se ejecutaría
+    const esc = (v: unknown) => String(v ?? 'N/A')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     Swal.fire({
-      title: `Detalles de ${product.referencia}`,
+      titleText: `Detalles de ${product.referencia || '(sin referencia)'}`,
       html: `
-      <b>Diámetro Externo:</b> ${product.diametroExterno || 'N/A'}<br>
-      <b>Diámetro Interno:</b> ${product.diametroInterno || 'N/A'}<br>
-      <b>Malla:</b> ${product.malla || 'N/A'}<br>
-      <b>Categoría:</b> ${product.category || 'N/A'}<br>
-      <b>Stock:</b> ${product.stock}
+      <b>Diámetro Externo:</b> ${esc(product.diametroExterno || null)}<br>
+      <b>Diámetro Interno:</b> ${esc(product.diametroInterno)}<br>
+      <b>Alto:</b> ${esc(product.alto)}<br>
+      <b>Corte de papel:</b> ${esc(product.cortePapel)}<br>
+      <b>Malla:</b> ${esc(product.malla || null)}<br>
+      <b>Categoría:</b> ${esc(product.category || null)}<br>
+      <b>Stock:</b> ${esc(product.stock)}
     `,
       icon: 'info'
     });

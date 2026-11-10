@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CatalogoAdmin } from './catalogo-admin/catalogo-admin';
 import { Pages } from './pages';
 import { Upload } from './upload/upload';
+import { adminGuard } from '../../core/auth.guard';
 
 const routes: Routes = [
   {
@@ -15,7 +16,8 @@ const routes: Routes = [
       },
       {
         path: 'upload',
-        component: Upload
+        component: Upload,
+        canActivate: [adminGuard]
       },
       {
         path: '',

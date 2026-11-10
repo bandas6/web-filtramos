@@ -10,3 +10,15 @@ export const authGuard: CanActivateFn = () => {
     map((ok) => (ok ? true : router.createUrlTree(['/login'])))
   );
 };
+
+// Solo administradores (p. ej. la biblioteca de imágenes). Bodega y ventas vuelven al catálogo.
+export const adminGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const auth = inject(Auth);
+  return auth.verificarSesion().pipe(
+    map((ok) => {
+      if (!ok) return router.createUrlTree(['/login']);
+      return auth.esAdmin() ? true : router.createUrlTree(['/pages/catalogo-admin']);
+    })
+  );
+};
